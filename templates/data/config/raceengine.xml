@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    file        : raceengine.xml
+    created     : Sat Nov 16 19:39:26 CET 2002
+    copyright   : (C) 2002 by Eric Espie
+    email       : Eric.Espie@torcs.org
+-->
+
+<!--    This program is free software; you can redistribute it and/or modify  -->
+<!--    it under the terms of the GNU General Public License as published by  -->
+<!--    the Free Software Foundation; either version 2 of the License, or     -->
+<!--    (at your option) any later version.                                   -->
+
+<!DOCTYPE params SYSTEM "../tgf/params.dtd">
+
+<params name="" type="template" mode="mw" version="3.14">
+
+  <section name="Translatable">
+    <section name="results">
+      <section name="lap">
+        <attstr name="text" val="lap"/>
+        <attstr name="text-fra" val="Tour"/>
+        <attstr name="text-spa" val="vuelta"/>
+        <attstr name="text-cat" val="volta"/>
+        <attstr name="text-ru" val="круг"/>
+      </section>
+      <section name="laps">
+        <attstr name="text" val="laps"/>
+        <attstr name="text-fra" val="Tours"/>
+        <attstr name="text-spa" val="vueltas"/>
+        <attstr name="text-cat" val="voltes"/>
+        <attstr name="text-ru" val="круги"/>
+      </section>
+      <section name="out">
+        <attstr name="text" val="out"/>
+        <attstr name="text-fra" val="Sortie"/>
+        <attstr name="text-spa" val="fuera"/>
+        <attstr name="text-cat" val="fora"/>
+      </section>
+      <section name="title">
+        <attstr name="text" val="%s at %s"/>
+        <attstr name="text-fra" val="%s: %s"/>
+        <attstr name="text-ru" val="%s: %s"/>
+        <attstr name="text-spa" val="%s en %s"/>
+        <attstr name="text-cat" val="%s a %s"/>
+      </section>
+      <section name="Rank">
+        <attstr name="text" val="Rank"/>
+        <attstr name="text-fra" val="Position"/>
+        <attstr name="text-spa" val="Posición"/>
+        <attstr name="text-cat" val="Posició"/>
+        <attstr name="text-ru" val="Позиция"/>
+      </section>
+      <section name="Time">
+        <attstr name="text" val="Time"/>
+        <attstr name="text-fra" val="Temps"/>
+        <attstr name="text-spa" val="Tiempo"/>
+        <attstr name="text-cat" val="Temps"/>
+        <attstr name="text-ru" val="Время"/>
+      </section>
+      <section name="Driver">
+        <attstr name="text" val="Driver"/>
+        <attstr name="text-fra" val="Pilote"/>
+        <attstr name="text-spa" val="Piloto"/>
+        <attstr name="text-cat" val="Pilot"/>
+        <attstr name="text-ru" val="Пилот"/>
+      </section>
+      <section name="Car">
+        <attstr name="text" val="Car"/>
+        <attstr name="text-fra" val="Voiture"/>
+        <attstr name="text-spa" val="Cotxe"/>
+        <attstr name="text-cat" val="Cotxe"/>
+        <attstr name="text-ru" val="Авто"/>
+      </section>
+    </section>
+    <section name="racemode">
+      <section name="Practice">
+        <attstr name="text" val="Practice"/>
+        <attstr name="text-fra" val="Pratique"/>
+        <attstr name="text-spa" val="Práctica"/>
+        <attstr name="text-cat" val="Pràctica"/>
+        <attstr name="text-ru" val="Практика"/>
+      </section>
+      <section name="Quick Race">
+        <attstr name="text" val="Quick race"/>
+        <attstr name="text-fra" val="Course rapide"/>
+        <attstr name="text-spa" val="Carrera rápida"/>
+        <attstr name="text-cat" val="Cursa ràpida"/>
+        <attstr name="text-ru" val="Быстрая гонка"/>
+      </section>
+      <section name="Endurance">
+        <attstr name="text" val="Endurance"/>
+        <attstr name="text-fra" val="Endurance"/>
+        <attstr name="text-spa" val="Resistencia"/>
+        <attstr name="text-cat" val="Resistència"/>
+        <attstr name="text-ru" val="На выносливость"/>
+      </section>
+      <section name="Challenge">
+        <attstr name="text" val="Challenge"/>
+        <attstr name="text-fra" val="Challenge"/>
+        <attstr name="text-spa" val="Desafío"/>
+        <attstr name="text-cat" val="Desafiament"/>
+        <attstr name="text-ru" val="Соревнование"/>
+      </section>
+      <section name="Online Championship">
+        <attstr name="text" val="Online Championship"/>
+        <attstr name="text-fra" val="Championat en ligne"/>
+        <attstr name="text-spa" val="Campeonato en línea"/>
+        <attstr name="text-cat" val="Campionat en línea"/>
+        <attstr name="text-ru" val="Онлайн-чемпионат"/>
+      </section>
+      <section name="Online">
+        <attstr name="text" val="Online"/>
+        <attstr name="text-fra" val="En ligne"/>
+        <attstr name="text-spa" val="Online"/>
+        <attstr name="text-cat" val="En línea"/>
+        <attstr name="text-ru" val="Онлайн"/>
+      </section>
+      <section name="Qualifications">
+        <attstr name="text" val="Qualifications"/>
+        <attstr name="text-fra" val="Qualifications"/>
+        <attstr name="text-spa" val="Calificaciones"/>
+        <attstr name="text-cat" val="Qualificacions"/>
+        <attstr name="text-ru" val="Квалификация"/>
+      </section>
+      <section name="All classes">
+        <attstr name="text" val="All classes"/>
+        <attstr name="text-fra" val="Toutes les classes"/>
+        <attstr name="text-spa" val="Todas las clases"/>
+        <attstr name="text-cat" val="Totes les categories"/>
+        <attstr name="text-ru" val="Все классы"/>
+      </section>
+    </section>
+    <section name="loading">
+      <section name="ready">
+        <attstr name="text" val="Ready."/>
+        <attstr name="text-fra" val="Prêt"/>
+        <attstr name="text-spa" val="Listo"/>
+        <attstr name="text-spa" val="Listo."/>
+        <attstr name="text-cat" val="Preparat."/>
+        <attstr name="text-ru" val="Готово."/>
+      </section>
+      <section name="onlinerace">
+        <attstr name="text" val="Preparing online race ..."/>
+        <attstr name="text-fra" val="En train de préparer la course en ligne ..."/>
+        <attstr name="text-spa" val="Preparando carrera en línea ..."/>
+        <attstr name="text-cat" val="Preparant cursa en línia ..."/>
+        <attstr name="text-ru" val="Подготавливаем онлайн-гонку..."/>
+      </section>
+      <section name="prestart">
+        <attstr name="text" val="Running Prestart ..."/>
+        <attstr name="text-fra" val="Initialisation ..."/>
+        <attstr name="text-ru" val="Подготовка к старту ..."/>
+        <attstr name="text-spa" val="Iniciando ..."/>
+        <attstr name="text-cat" val="Iniciant ..."/>
+      </section>
+      <section name="driver">
+        <attstr name="text" val="Loading %s driver (%s) ..."/>
+        <attstr name="text-fra" val="Chargement du pilote (%s)..."/>
+        <attstr name="text-spa" val="Cargando piloto %s (%s) ..."/>
+        <attstr name="text-cat" val="Carregant pilot %s (%s) ..."/>
+        <attstr name="text-ru" val="Загрузка пилота %s (%s) ..."/>
+      </section>
+      <section name="physicsengine">
+        <attstr name="text" val="Loading physics engine (%s) ..."/>
+        <attstr name="text-fra" val="Chargement du moteur physique (%s) ..."/>
+        <attstr name="text-spa" val="Cargando motor de físicas (%s) ..."/>
+        <attstr name="text-cat" val="Carregant el motor de físiques (%s) ..."/>
+        <attstr name="text-ru" val="Загрузка физического движка (%s) ..."/>
+      </section>
+      <section name="startingorder">
+        <attstr name="text" val="Determining Starting Order ..."/>
+        <attstr name="text-fra" val="Détermination de l'ordre de démarrage ..."/>
+        <attstr name="text-spa" val="Determinando orden de salida ..."/>
+        <attstr name="text-cat" val="Determinant l'ordre de sortida ..."/>
+        <attstr name="text-ru" val="Определение порядка старта ..."/>
+      </section>
+      <section name="startinggrid">
+        <attstr name="text" val="Determining Starting Grid ..."/>
+        <attstr name="text-fra" val="Détermination de la grille de départ ..."/>
+        <attstr name="text-spa" val="Determinando parilla de salida ..."/>
+        <attstr name="text-cat" val="Determinant la graella de sortida ..."/>
+        <attstr name="text-ru" val="Определение стартовой решетки ..."/>
+      </section>
+      <section name="track">
+        <attstr name="text" val="Loading %s track"/>
+        <attstr name="text-fra" val="Chargement du circuit %s"/>
+        <attstr name="text-spa" val="Cargando circuito %s"/>
+        <attstr name="text-cat" val="Carregant el circuit %s"/>
+        <attstr name="text-ru" val="Загрузка трассы %s"/>
+      </section>
+      <section name="trackinfo">
+        <attstr name="text" val="  by %s (%.0f m long, %.0f m wide) ..."/>
+        <attstr name="text-ru" val=""/>
+        <attstr name="text-fra" val=" par %s (%.0f m long, %.0f m large ..."/>
+        <attstr name="text-spa" val="por %s (%.0f m de largo, %.0f m de ancho) ..."/>
+        <attstr name="text-cat" val="   desenvolupat per %s (%.0f m de longitud, %.0f m d'amplada)"/>
+      </section>
+      <section name="graphicstrack">
+        <attstr name="text" val="Loading graphics for %s track ..."/>
+        <attstr name="text-fra" val="Chargement des graphiques du circuit %s ..."/>
+        <attstr name="text-spa" val="Cargando gráficos del circuito %s ..."/>
+        <attstr name="text-cat" val="Carregant gràfics del circuit %s ..."/>
+        <attstr name="text-ru" val="Загрузка графики для трассы %s ..."/>
+      </section>
+      <section name="graphicscars">
+        <attstr name="text" val="Loading graphics for all cars..."/>
+        <attstr name="text-fra" val="Chargement des graphiques pour toutes les voitures..."/>
+        <attstr name="text-spa" val="Cargando gráficos para todos los coches..."/>
+        <attstr name="text-cat" val="Carregant gràfics dels cotxes..."/>
+        <attstr name="text-ru" val="Загрузка графики для всех автомобилей..."/>
+      </section>
+      <section name="soundcars">
+        <attstr name="text" val="Loading sound effects for all cars..."/>
+        <attstr name="text-fra" val="Chargement des effets sonores pour toutes les voitures ..."/>
+        <attstr name="text-spa" val="Cargando efectos de sonido de los coches ..."/>
+        <attstr name="text-cat" val="Carregant efectes de so dels cotxes..."/>
+        <attstr name="text-ru" val="Загрузка звуковых эффектов для всех автомобилей..."/>
+      </section>
+    </section>
+    <section name="hitenter">
+      <attstr name="text" val="Hit &lt;Enter&gt; or any joystick button to start"/>
+      <attstr name="text-fra" val="App. &lt;Entrée&gt; ou un bouton manette pr. démarrer"/>
+      <attstr name="text-spa" val="Pulsa &lt;Enter&gt; o el joystick para comenzar"/>
+      <attstr name="text-cat" val="Pitgeu &lt;Enter&gt; o el joystick per començar"/>
+      <attstr name="text-ru" val="Нажмите &lt;Enter&gt; или любую кнопку джойстика"/>
+    </section>
+    <section name="showresults">
+      <attstr name="text" val="Hit &lt;Enter&gt; for the race results"/>
+      <attstr name="text-fra" val="Appuyer sur &lt;Entrée&gt; pour les résultats de course"/>
+      <attstr name="text-spa" val="Pulsa &lt;Enter&gt; para los resultados"/>
+      <attstr name="text-cat" val="Pitgeu &lt;Enter&gt; per als resultats"/>
+      <attstr name="text-ru" val="Нажмите &lt;Enter&gt; для перехода к результатам"/>
+    </section>
+    <section name="ready">
+      <attstr name="text" val="Ready"/>
+      <attstr name="text-fra" val="Prêt"/>
+      <attstr name="text-spa" val="Preparados"/>
+      <attstr name="text-cat" val="Preparats"/>
+      <attstr name="text-ru" val="На старт"/>
+    </section>
+    <section name="set">
+      <attstr name="text" val="Set"/>
+      <attstr name="text-spa" val="Listos"/>
+      <attstr name="text-cat" val="Llestos"/>
+      <attstr name="text-ru" val="Внимание"/>
+    </section>
+    <section name="time">
+      <attstr name="text" val="Time"/>
+      <attstr name="text-fra" val="Temps"/>
+      <attstr name="text-ru" val="Время"/>
+      <attstr name="text-spa" val="Tiempo"/>
+      <attstr name="text-cat" val="Temps"/>
+    </section>
+    <section name="go">
+      <attstr name="text" val="Go"/>
+      <attstr name="text-fra" val="Allez!"/>
+      <attstr name="text-spa" val="Ya"/>
+      <attstr name="text-cat" val="Ja"/>
+      <attstr name="text-ru" val="Вперед"/>
+    </section>
+    <section name="racestart">
+      <attstr name="text" val="Race will start in"/>
+      <attstr name="text-fra" val="La course débutera en"/>
+      <attstr name="text-spa" val="La carrera comenzará en"/>
+      <attstr name="text-cat" val="La cursa començarà en"/>
+      <attstr name="text-ru" val="Гонка начнется через"/>
+    </section>
+    <section name="seconds">
+      <attstr name="text" val="seconds"/>
+      <attstr name="text-fra" val="secondes"/>
+      <attstr name="text-spa" val="segundos"/>
+      <attstr name="text-cat" val="segons"/>
+      <attstr name="text-ru" val="секунд"/>
+    </section>
+    <section name="wrongway">
+      <attstr name="text" val="wrong way"/>
+      <attstr name="text-fra" val="Mauvais sens"/>
+      <attstr name="text-spa" val="dirección contraria"/>
+      <attstr name="text-cat" val="direcció contrària"/>
+      <attstr name="text-ru" val="неверное направление"/>
+    </section>
+    <section name="finished">
+      <attstr name="text" val="has finished"/>
+      <attstr name="text-fra" val="a terminé"/>
+      <attstr name="text-spa" val="ha terminado"/>
+      <attstr name="text-cat" val="ha acabat"/>
+      <attstr name="text-ru" val="финишировал на месте"/>
+    </section>
+    <section name="overrun">
+      <attstr name="text" val="Overrun"/>
+      <attstr name="text-fra" val="Dépassement"/>
+      <attstr name="text-spa" val="Sobrepasado"/>
+      <attstr name="text-cat" val="Sobrepassat:"/>
+      <attstr name="text-ru" val="Превышение:"/>
+    </section>
+    <section name="stilltogo">
+      <attstr name="text" val="Still to go"/>
+      <attstr name="text-fra" val="Restant"/>
+      <attstr name="text-spa" val="Quedan"/>
+      <attstr name="text-cat" val="Queden"/>
+      <attstr name="text-ru" val="Осталось"/>
+    </section>
+    <section name="possuffix">
+      <section name="first">
+        <attstr name="text" val="st"/>
+        <attstr name="text-fra" val="er"/>
+        <attstr name="text-ru" val=" "/>
+        <attstr name="text-spa" val="º/ª"/>
+        <attstr name="text-cat" val="r"/>
+      </section>
+      <section name="second">
+        <attstr name="text" val="nd"/>
+        <attstr name="text-fra" val="ème"/>
+        <attstr name="text-ru" val=" "/>
+        <attstr name="text-spa" val="º/ª"/>
+        <attstr name="text-cat" val="n"/>
+      </section>
+      <section name="third">
+        <attstr name="text" val="rd"/>
+        <attstr name="text-fra" val="ième"/>
+        <attstr name="text-ru" val=" "/>
+        <attstr name="text-spa" val="º/ª"/>
+        <attstr name="text-cat" val="r"/>
+      </section>
+      <section name="fourth">
+        <attstr name="text" val="th"/>
+        <attstr name="text-fra" val="ième"/>
+        <attstr name="text-ru" val=" "/>
+        <attstr name="text-spa" val="º/ª"/>
+        <attstr name="text-cat" val="t"/>
+      </section>
+      <section name="default">
+        <attstr name="text" val="th"/>
+        <attstr name="text-fra" val=" "/>
+        <attstr name="text-ru" val=" "/>
+        <attstr name="text-spa" val="º/ª"/>
+        <attstr name="text-spa" val="T"/>
+        <attstr name="text-cat" val="è"/>
+      </section>
+    </section>
+    <section name="out">
+      <attstr name="text" val="%s has abandoned the race"/>
+      <attstr name="text-cat" val="En/na %s ha abandonat la cursa"/>
+      <attstr name="text-spa" val="%s ha abandonado la carrera"/>
+      <attstr name="text-ru" val="%s покинул(а) гонку"/>
+    </section>
+    <section name="winner">
+      <attstr name="text" val="has won the race"/>
+      <attstr name="text-fra" val="a gagné la course"/>
+      <attstr name="text-spa" val="ha ganado la carrera"/>
+      <attstr name="text-cat" val="ha guanyat la cursa"/>
+      <attstr name="text-ru" val="выиграл(а) гонку"/>
+    </section>
+    <section name="inpits">
+      <attstr name="text" val="in pits"/>
+      <attstr name="text-fra" val="au stands"/>
+      <attstr name="text-spa" val="ha entrado en boxes"/>
+      <attstr name="text-cat" val="ha entrat a boxes"/>
+      <attstr name="text-ru" val="в боксах"/>
+    </section>
+    <section name="pitstop">
+      <attstr name="text" val="pit stop"/>
+      <attstr name="text-fra" val="arrêt au stand"/>
+      <attstr name="text-spa" val="parada en boxes"/>
+      <attstr name="text-cat" val="aturada a boxes"/>
+      <attstr name="text-ru" val="пит-стоп"/>
+    </section>
+    <section name="penalty">
+      <section name="cleared">
+        <attstr name="text" val="penalty cleared"/>
+        <attstr name="text-spa" val="penalització eliminada"/>
+        <attstr name="text-cat" val="penalització eliminada"/>
+        <attstr name="text-ru" val="штраф снят"/>
+      </section>
+      <section name="drive-through">
+        <section name="start">
+          <attstr name="text" val="drive-through penalty"/>
+          <attstr name="text-fra" val="pénalité de ligne des puits"/>
+          <attstr name="text-spa" val="penalización drive-through"/>
+          <attstr name="text-cat" val="penalització drive-through"/>
+          <attstr name="text-ru" val="проезд через боксы"/>
+        </section>
+        <section name="clearing">
+          <attstr name="text" val="drive-through penalty clearing"/>
+          <attstr name="text-fra" val="écoulement de pénalité en "/>
+          <attstr name="text-spa" val="eliminando penalització drive-through"/>
+          <attstr name="text-cat" val="eliminant penalització drive-through"/>
+          <attstr name="text-ru" val="проезд через боксы"/>
+        </section>
+        <section name="cleared">
+          <attstr name="text" val="drive-through penalty cleared"/>
+          <attstr name="text-fra" val="pénalité écoulée"/>
+          <attstr name="text-spa" val="eliminada penalització drive-through"/>
+          <attstr name="text-cat" val="penalització drive-through eliminada"/>
+          <attstr name="text-ru" val="проезд через боксы выполнен"/>
+        </section>
+      </section>
+      <section name="stop-and-go">
+        <attstr name="text" val="Stop-and-Go penalty"/>
+        <attstr name="text-fra" val="Pénalité démarrage"/>
+        <attstr name="text-spa" val="penalización Stop-and-Go"/>
+        <attstr name="text-cat" val="penalització Stop-and-Go"/>
+        <attstr name="text-ru" val="штраф Stop-and-Go"/>
+        <section name="clearing">
+          <attstr name="text" val="clearing Stop-and-Go penalty"/>
+          <attstr name="text-fra" val="Écoulement de pénalité de démarrage"/>
+          <attstr name="text-ru" val="снятие штрафа Stop-and-Go"/>
+          <attstr name="text-spa" val="eliminando penalización Stop-and-Go"/>
+          <attstr name="text-cat" val="eliminant penalització Stop-and-Go"/>
+        </section>
+      </section>
+      <section name="stop-and-go-10sec">
+        <attstr name="text" val="10-second Stop-and-Go penalty"/>
+        <attstr name="text-fra" val="Pénalité de démarrage de 10 secondes"/>
+        <attstr name="text-spa" val="penalización Stop-and-Go de 10 segundos"/>
+        <attstr name="text-cat" val="penalització Stop-and-Go de 10 segons"/>
+        <attstr name="text-ru" val="штраф Stop-and-Go 10 секунд"/>
+      </section>
+      <section name="disqualified">
+        <attstr name="text" val="disqualified"/>
+        <attstr name="text-fra" val="disqualifié"/>
+        <attstr name="text-spa" val="descalificado"/>
+        <attstr name="text-cat" val="desqualificat"/>
+        <attstr name="text-ru" val="дисквалифицирован"/>
+      </section>
+      <section name="hitwall">
+        <attstr name="text" val="hit a wall, laptime invalidated"/>
+        <attstr name="text-fra" val="Mur heurté, chrono de tour invalidé"/>
+        <attstr name="text-spa" val="chocó contra una pared, tiempo de vuelta descartado"/>
+        <attstr name="text-cat" val="ha xocat amb una paret, temps de volta descartat"/>
+        <attstr name="text-ru" val="- время круга не засчитано"/>
+      </section>
+      <section name="slowdown">
+        <section name="start">
+          <attstr name="text" val="slowdown penalty"/>
+          <attstr name="text-fra" val="pénalité de ralentissement"/>
+          <attstr name="text-spa" val="penalización a velocidad reducida"/>
+          <attstr name="text-cat" val="penalització a velocitat reduïda"/>
+          <attstr name="text-ru" val="штраф - снижение скорости"/>
+        </section>
+        <section name="forgiven">
+          <attstr name="text" val="slowdown penalty forgiven"/>
+          <attstr name="text-fra" val="pénalité de ralentissement révoquée"/>
+          <attstr name="text-spa" val="se perdona la penalización de velocidad"/>
+          <attstr name="text-cat" val="es perdona la penalització de velocitat"/>
+          <attstr name="text-ru" val="снят штраф сниж. скорости"/>
+        </section>
+        <section name="clearing">
+          <attstr name="text" val="slowdown penalty ongoing"/>
+          <attstr name="text-fra" val="pénalité de ralentissement en cours"/>
+          <attstr name="text-spa" val="penalización en curso"/>
+          <attstr name="text-cat" val="penalització velocitat en curs"/>
+          <attstr name="text-ru" val="снижение скорости"/>
+        </section>
+        <section name="cleared">
+          <attstr name="text" val="slowdown penalty cleared"/>
+          <attstr name="text-fra" val="pénalité de ralentissement écoulée"/>
+          <attstr name="text-spa" val="penalización de velocidad eliminada"/>
+          <attstr name="text-cat" val="penalització de velocitat eliminada"/>
+          <attstr name="text-ru" val="снят штраф сниж. скорости"/>
+        </section>
+      </section>
+    </section>
+  </section>
+
+  <section name="Modules">
+    <attstr name="racing" val="standardgame"/>
+    <attstr name="track" val="trackv1"/>
+    <attstr name="simu" val="simuv5"/>
+    <attstr name="graphic" val="ssggraph"/>
+    <attstr name="sound" val="snddefault"/>
+  </section>
+
+  <section name="Movie Capture">
+    <attstr name="enable capture" in="yes,no" val="no"/>
+    <attnum name="fps" val="25"/>
+    <attstr name="output directory" val="captures"/>
+  </section>
+
+  <section name="Race Engine">
+    <attstr name="startpaused" in="on,off" val="on"/>
+    <attstr name="cooldown" in="on,off" val="on"/>
+  </section>
+
+</params>
