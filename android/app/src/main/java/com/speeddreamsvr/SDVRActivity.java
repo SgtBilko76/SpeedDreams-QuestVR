@@ -3,6 +3,9 @@ package com.speeddreamsvr;
 import static android.system.Os.setenv;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Locale;
 
 import android.Manifest;
@@ -117,12 +120,48 @@ public class SDVRActivity extends Activity implements SurfaceHolder.Callback
         }
     }
 
+    /**
+     * Copy the pre-warmed gl4es shader archive shipped in the APK into the writable
+     * data dir, so a fresh install starts with warm shaders instead of compiling
+     * them one stutter at a time. Only seeds when no archive exists: after that the
+     * game keeps its own updated copy (VrShaderCacheFlush). A build without the
+     * bundled asset simply skips this and the cache fills up as you play. Must run
+     * before the native side initialises gl4es, which reads the archive at startup.
+     */
+    private void seedShaderCache()
+    {
+        File dst = new File(mDataDir, ".gl4es.psa");
+        if (dst.exists()) {
+            return;
+        }
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = getAssets().open("gl4es.psa");
+            out = new FileOutputStream(dst);
+            byte[] buf = new byte[65536];
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                out.write(buf, 0, n);
+            }
+            Log.v(TAG, "seeded bundled shader cache -> " + dst);
+        } catch (java.io.FileNotFoundException e) {
+            // No bundled archive in this build; the cache builds up as you play.
+        } catch (Exception e) {
+            Log.e(TAG, "seedShaderCache failed: " + e);
+        } finally {
+            try { if (in != null) in.close(); } catch (Exception ignored) {}
+            try { if (out != null) out.close(); } catch (Exception ignored) {}
+        }
+    }
+
     private void create()
     {
         if (mNativeHandle != 0) {
             return;
         }
         new File(mDataDir).mkdirs();
+        seedShaderCache();
         Log.v(TAG, "data dir = " + mDataDir);
         mNativeHandle = SDVRLib.onCreate(this, mDataDir);
         // If the surface already exists (permission round-trip), hand it over now.

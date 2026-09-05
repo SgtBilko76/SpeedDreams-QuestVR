@@ -48,6 +48,7 @@ add_library(sdvr SHARED
     ${VR_DIR}/vr_config.cpp
     ${VR_DIR}/vr_rtti.cpp
     ${VR_DIR}/vr_keyboard.cpp
+    ${VR_DIR}/vr_perf.c
     ${VR_DIR}/glu_shim.cpp
     ${SD_SRC}/main/main.cpp
 )

@@ -51,6 +51,10 @@ static bool sStereoFrame = false;   /* the race rendered both eyes this frame */
 static bool sMonoActive = false;    /* eye 0 is bound for 2D drawing */
 static bool sUseScreenLayer = true; /* submit a quad layer (menu) instead of a projection */
 
+static bool sPrevWasStereo = false; /* the previous frame was a race frame */
+static int sShaderFlushClock = 0;   /* menu frames since the last shader archive write */
+static const int SHADER_FLUSH_FRAMES = 600;   /* ~10 s at 60 fps */
+
 static const float HUD_DISTANCE = 1.5f;   /* metres */
 static const float HUD_HEIGHT = 1.2f;     /* metres */
 
@@ -323,6 +327,24 @@ void VrMonoBegin(void)
     glViewport(0, 0, w, h);
 }
 
+/* gl4es persistent shader archive: fpe_writePSA() serialises the program binaries
+ * compiled so far to <data>/.gl4es.psa, so the next launch starts with warm
+ * shaders instead of stalling on the first frame that needs each one. It is a
+ * no-op unless something new was compiled, and it must run on the GL thread and
+ * outside a race frame - the write is a file write, and it would otherwise land
+ * in the middle of a rendered frame. */
+extern "C" void fpe_writePSA(void);
+
+void VrShaderCacheFlush(void)
+{
+    fpe_writePSA();
+}
+
+int VrFrameWasStereo(void)
+{
+    return sPrevWasStereo ? 1 : 0;
+}
+
 void VrPresent(void)
 {
     if (vr_inStereoFrame) {
@@ -342,6 +364,20 @@ void VrPresent(void)
     }
 
     TBXR_submitFrame();
+
+    /* Leaving a race for the menus: save any shader compiled while driving. Also
+     * flush now and then while in the menus, which is where the first launch
+     * compiles most of its shaders - both are skipped unless the archive is
+     * actually dirty, and neither can happen inside a race frame. */
+    bool wasStereo = sStereoFrame;
+    if (sPrevWasStereo && !wasStereo) {
+        VrShaderCacheFlush();
+        sShaderFlushClock = 0;
+    } else if (!wasStereo && ++sShaderFlushClock >= SHADER_FLUSH_FRAMES) {
+        VrShaderCacheFlush();
+        sShaderFlushClock = 0;
+    }
+    sPrevWasStereo = wasStereo;
 
     sStereoFrame = false;
     /* Open the next frame right away, eye 0 bound, so that whatever draws next
