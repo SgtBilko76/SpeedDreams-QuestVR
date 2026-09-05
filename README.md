@@ -115,7 +115,7 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 | Key | Default | Effect |
 |---|---|---|
 | `refresh` | 72 | Display Hz (72/80/90/120). Higher is smoother only if the frame rate keeps up. |
-| `supersampling` | 1.0 | Eye-buffer scale, as a fraction of the runtime's recommended resolution (2800x2933 per eye on a Quest 3). Lower it for a faster, softer picture. Pixels are not what this port is short of, so it buys less than you would think - see "Performance". |
+| `supersampling` | 0.5 | Eye-buffer scale, as a fraction of the runtime's recommended resolution. A Quest 3 recommends 2800x2933 per eye, so this renders 1400x1466 and lets the compositor scale it up. Raise it towards 1.0 for a sharper picture; the renderer is draw-call bound rather than fill bound (see "Performance"), so the cost is smaller than the pixel count suggests, and so is the gain from lowering it further. |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
 
 `vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
