@@ -115,7 +115,8 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 | Key | Default | Effect |
 |---|---|---|
 | `refresh` | 72 | Display Hz (72/80/90/120). Higher is smoother only if the frame rate keeps up. |
-| `supersampling` | 0.5 | Eye-buffer scale, as a fraction of the runtime's recommended resolution. A Quest 3 recommends 2800x2933 per eye, so this renders 1400x1466 and lets the compositor scale it up. Raise it towards 1.0 for a sharper picture; the renderer is draw-call bound rather than fill bound (see "Performance"), so the cost is smaller than the pixel count suggests, and so is the gain from lowering it further. |
+| `supersampling` | 1.0 | Eye-buffer scale, as a fraction of the runtime's recommended resolution (2800x2933 per eye on a Quest 3). Lowering it buys very little - halving it to 1400x1466 measured 36 -> 34 fps, because the renderer is bound by draw calls and not by pixels (see "Performance"). |
+| `msaa` | 2 | Multisample antialiasing on the eye buffers: 1 (off), 2, 4 or 8. Resolved in tile memory (`GL_EXT_multisampled_render_to_texture`), so much cheaper than the equivalent supersampling, but not free - measured at Jarama: 1 = 65-69 fps, 2 = 63-71, 4 = 52-56. |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
 
 `vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
@@ -149,12 +150,23 @@ from that.
 - **`fov factor`** is then the draw-distance dial: it scales that far plane directly, so it trades
   how far you can see against how many meshes are in view.
 - **No rain particles**, no smoke, no skid marks: many small draws is the one thing to avoid.
+- **Meshes that share a state are merged** once the scene is loaded
+  (`cgrVtxTableTrackPart::mergeStaticMeshes`). The track compiler emits one object per
+  surface group - 4949 of them for Jarama, sharing 70 textures - and combining the ones
+  that sit in the same branch of the scene leaves 1011. Merging is kept inside a branch so
+  that a merged mesh stays spatially compact and can still be culled.
+
+Together those took a race at Jarama from 29 to 65-69 fps. Where quality is concerned the
+trade runs the other way: the GPU is only a third busy, so antialiasing and texture
+filtering are close to free while draw calls are not. `msaa`, 16x anisotropic filtering and
+full-size textures (the last two in `templates/data/config/screen.xml`) are all worth more
+here than they would be on a GPU-bound port.
 
 Every few seconds the app prints what it is doing to logcat:
 
 ```
-perf: 36.0 fps (181 frames, 181 in stereo) | wait 0.0  event 0.0  sim 0.0  draw 27.7 ms
-perf: draws per frame by phase | sky 0 | cars 0 | track 1500 | scene 551 | rain 0 | hud 154 | leaves 981
+perf: 69.3 fps (347 frames, 347 in stereo) | wait 0.0  event 0.0  sim 0.2  draw 14.2 ms | 457 draws
+perf: draws per frame by phase | sky 0 | cars 126 | track 203 | scene 20 | rain 0 | hud 108 | leaves 351
 ```
 
 `sim` against `draw` says whether the physics or the renderer is the problem, and the phase line
