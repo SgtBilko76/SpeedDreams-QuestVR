@@ -317,8 +317,21 @@ extern "C" void* AppThreadFunction(void* parm)
         snprintf(valLC, sizeof(valLC), "%s", VrLocalDir());
         snprintf(valLD, sizeof(valLD), "%s", VrDataDir());
         snprintf(valBD, sizeof(valBD), "%s", VrBaseDir());
-        char* argv[] = {arg0, optDD, valDD, optLC, valLC, optLD, valLD, optBD, valBD, NULL};
-        const int argc = 9;
+        static char optSR[] = "-s";
+        static char valSR[128];
+        char* argv[12] = {arg0, optDD, valDD, optLC, valLC, optLD, valLD, optBD, valBD, NULL, NULL, NULL};
+        int argc = 9;
+
+        /* vr.cfg may name a race to start directly, skipping the menus. This is
+         * how a race gets tested without pointing at menu items by hand:
+         *   startrace = practice   */
+        const char* race = VrConfigGetStr("startrace", NULL);
+        if (race && race[0]) {
+            snprintf(valSR, sizeof(valSR), "%s", race);
+            argv[argc++] = optSR;
+            argv[argc++] = valSR;
+            ALOGI("Starting race directly: %s", valSR);
+        }
         // There is no SDL_main on this platform: tell SDL the app is ready,
         // otherwise SDL_Init() refuses to start.
         SDL_SetMainReady();
