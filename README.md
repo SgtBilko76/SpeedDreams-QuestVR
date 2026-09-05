@@ -170,9 +170,15 @@ here than they would be on a GPU-bound port.
 Every few seconds the app prints what it is doing to logcat:
 
 ```
-perf: 69.3 fps (347 frames, 347 in stereo) | wait 0.0  event 0.0  sim 0.2  draw 14.2 ms | 457 draws
-perf: draws per frame by phase | sky 0 | cars 126 | track 203 | scene 20 | rain 0 | hud 108 | leaves 351
+perf: 72.0 fps (360 frames, 360 in stereo) | wait 4.8  event 0.0  sim 0.1  draw 9.0 ms | 511 draws
+perf: draws per frame by phase | sky 0 | cars 75 | track 318 | scene 9 | rain 0 | hud 109 | leaves 404
 ```
+
+The four times add up to the frame period, so `wait` is the headroom: 4.8 ms of the 13.9 ms a
+72 Hz frame gets is spent idle in the compositor here. Most of that waiting happens inside
+`VrPresent`, which opens the next OpenXR frame at the end of its work, and is taken back out
+of the draw phase where it is measured - otherwise a frame with headroom to spare would read
+as one that exactly fills its budget.
 
 `sim` against `draw` says whether the physics or the renderer is the problem, and the phase line
 says which part of the scene the draws belong to. Compare `draw` with the GPU's own load

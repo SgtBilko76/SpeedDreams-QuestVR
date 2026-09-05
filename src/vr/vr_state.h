@@ -77,13 +77,20 @@ int VrJoyRead(int index, int* buttons, float* axes);
  * The event loop calls VrPerfMark() at the end of each phase of an iteration;
  * one summary line goes to logcat every few seconds. VR_PERF_DRAW closes a frame. */
 enum {
-    VR_PERF_WAIT = 0,   /* blocked in VrFrameBegin (xrWaitFrame) */
+    VR_PERF_WAIT = 0,   /* blocked waiting for the compositor (xrWaitFrame) */
     VR_PERF_EVENT,      /* event dispatch */
     VR_PERF_SIM,        /* recompute + timers */
     VR_PERF_DRAW,       /* predisplay + redisplay, including the OpenXR submit */
     VR_PERF_PHASES
 };
 void VrPerfMark(int phase);
+
+/* Time spent blocked in the compositor, reported by whoever did the waiting.
+ * It is subtracted from the phase it happened in and counted as VR_PERF_WAIT:
+ * VrPresent opens the next OpenXR frame at the end of its work, so an app that
+ * is comfortably inside its frame budget blocks there, in the middle of what the
+ * event loop calls drawing. Without this the frame looks exactly saturated. */
+void VrPerfWaited(long long ns);
 
 /* Attribute the draw calls issued since the previous tag to one phase of the
  * scene. Called from cGrScreen::drawScene (ssggraph). */
