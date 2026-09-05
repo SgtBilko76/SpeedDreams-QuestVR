@@ -5,3 +5,5 @@ android/app/.cxx/
 android/local.properties
 stage/
 build*.log
+third_party/
+lib/
