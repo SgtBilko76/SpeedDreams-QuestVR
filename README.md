@@ -32,7 +32,12 @@ git submodule update --init --depth 1 speed-dreams-data freesolid
 
 cd E:\SpeedDreamsVR\android
 .\gradlew assembleDebug        # -> app\build\outputs\apk\debug\app-debug.apk
+.\gradlew assembleRelease      # -> app\build\outputs\apk\release\app-release.apk
 ```
+
+Both are signed with the local debug key, so either can be sideloaded and one upgrades the
+other in place. The release build compiles the native side optimised, which is worth having:
+a race that holds 65-69 fps in the debug build sits on the 72 Hz refresh rate in release.
 
 The third-party sources in `third_party/` are git clones; `third_party/gl4es` and
 `third_party/SDL2` carry local patches (see "How it works").
