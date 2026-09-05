@@ -66,10 +66,49 @@ void VrGetEyeSize(int* w, int* h);
 /* Menu screen / race state */
 int  VrInMenu(void);          /* 1 while the floating screen (quad layer) is shown */
 
+int  VrFrameWasStereo(void);   /* the frame just presented was a stereo race frame */
+
 /* Virtual joystick read used by tgfclient/control.cpp (GfctrlJoyGetCurrentStates).
  * Returns 0 and fills *buttons (bitmask) and axes[] for joystick 'index'
  * (only index 0 exists), -1 otherwise. */
 int VrJoyRead(int index, int* buttons, float* axes);
+
+/* ---- Frame time breakdown (vr_perf.c) ----
+ * The event loop calls VrPerfMark() at the end of each phase of an iteration;
+ * one summary line goes to logcat every few seconds. VR_PERF_DRAW closes a frame. */
+enum {
+    VR_PERF_WAIT = 0,   /* blocked in VrFrameBegin (xrWaitFrame) */
+    VR_PERF_EVENT,      /* event dispatch */
+    VR_PERF_SIM,        /* recompute + timers */
+    VR_PERF_DRAW,       /* predisplay + redisplay, including the OpenXR submit */
+    VR_PERF_PHASES
+};
+void VrPerfMark(int phase);
+
+/* Attribute the draw calls issued since the previous tag to one phase of the
+ * scene. Called from cGrScreen::drawScene (ssggraph). */
+enum {
+    VR_PERF_SCENE_SKY = 0,
+    VR_PERF_SCENE_CARS,
+    VR_PERF_SCENE_TRACK,   /* the track meshes proper (cgrVtxTableTrackPart) */
+    VR_PERF_SCENE_SCENE,   /* the rest of the scene graph: buildings, landscape */
+    VR_PERF_SCENE_RAIN,
+    VR_PERF_SCENE_HUD,     /* everything outside the tagged phases */
+    VR_PERF_SCENES
+};
+void VrPerfScene(int slot);
+
+/* plib's running total of scene graph leaves drawn (stats_num_leaves), read after
+ * the scene: one leaf is one mesh the game asked for, so leaves vs draws says
+ * whether the cost is the number of meshes or the way each one is submitted. */
+void VrPerfLeaves(int total);
+
+/* One track mesh was drawn (cgrVtxTableTrackPart::draw). */
+void VrPerfTrackPart(void);
+
+/* Write the gl4es precompiled shader archive if anything new was compiled.
+ * A no-op when the archive is clean; never call it from inside a race frame. */
+void VrShaderCacheFlush(void);
 
 #ifdef __cplusplus
 }
