@@ -1,0 +1,87 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.speeddreamsvr'
+    compileSdk 34
+    ndkVersion '27.2.12479018'
+
+    defaultConfig {
+        applicationId 'com.speeddreamsvr'
+        minSdk 29
+        targetSdk 32
+        versionCode 1
+        versionName '0.1'
+
+        externalNativeBuild {
+            cmake {
+                // c++_shared: several modules and the core all use the STL, and
+                // they are separate .so files loaded into one process.
+                arguments '-DANDROID_STL=c++_shared', '-DANDROID_PLATFORM=android-29'
+                targets 'sdvr',
+                        'sd_ssggraph', 'sd_snddefault', 'sd_simuv5', 'sd_trackv1',
+                        'sd_standardgame', 'sd_legacymenu', 'sd_telemetryv1',
+                        'sd_human', 'sd_networkhuman', 'sd_simplix', 'sd_usr',
+                        'sd_axiom', 'sd_shadow', 'sd_dandroid', 'sd_urbanski'
+            }
+        }
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('../../CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
+    // OpenXR loader (headers + libopenxr_loader.so) comes from the Maven AAR via prefab.
+    buildFeatures {
+        prefab true
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file(System.getProperty('user.home') + '/.android/debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            debuggable true
+            jniDebuggable true
+        }
+        release {
+            signingConfig signingConfigs.debug
+            debuggable false
+            minifyEnabled false
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'org.khronos.openxr:openxr_loader_for_android:1.1.63'
+}

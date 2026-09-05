@@ -1,0 +1,78 @@
+#ifndef VR_STATE_H
+#define VR_STATE_H
+
+/*
+ * Stereo rendering state shared between the VR glue (sd_vr.cpp / vr_stereo.cpp)
+ * and the patched Speed Dreams code (ssggraph grcam.cpp / grmain.cpp / grscreen.cpp,
+ * tgfclient gui.cpp / guieventloop.cpp / guiscreen.cpp, legacymenu racerunningmenus.cpp).
+ * Plain C interface: the renderer lives in a separate shared library
+ * (libsd_ssggraph.so) that links against the core (libsdvr.so).
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* 1 while the race is being rendered for one eye (set by VrRaceEyeBegin). */
+extern int vr_inStereoFrame;
+/* 0 or 1 */
+extern int vr_curEye;
+
+/* Eye field of view in radians: [0]=angleLeft (<0), [1]=angleRight, [2]=angleUp, [3]=angleDown (<0) */
+extern float vr_eyeFov[2][4];
+
+/* Compose the OpenXR eye pose onto a Speed Dreams camera (Z-up world, metres).
+ * eye/center/up are the camera vectors; the outputs are the per-eye camera to
+ * feed to grMakeLookAtMat4(). */
+void VrApplyEyePose(const float* eye, const float* center, const float* up,
+                    float* eyeOut, float* centerOut, float* upOut);
+
+/* Like VrApplyEyePose but with NO positional offset (the eye stays at the origin):
+ * only the per-eye head rotation is applied. Used for the skybox/background so it
+ * sits at infinity and both eyes see identical sky. */
+void VrApplyEyeRotationOnly(const float* center, const float* up,
+                            float* centerOut, float* upOut);
+
+/* Set up projection + modelview so that the 2D ortho space [l,r]x[b,t] appears
+ * as a head-locked plane in front of the current eye (used for HUD and GUI). */
+void VrSetupHudProjection(float left, float right, float bottom, float top);
+
+/* ---- Frame driver ----
+ * One OpenXR frame per rendered Speed Dreams frame:
+ *   VrFrameBegin()  xrWaitFrame / xrBeginFrame, controllers -> synthetic events.
+ *                   Idempotent: called at the top of every event loop iteration
+ *                   and again after each present.
+ *   VrMonoBegin()   called from GfuiRedraw() when it draws outside a stereo frame:
+ *                   binds eye 0's buffer so the 2D menu is drawn into it.
+ *   VrPresent()     called from GfuiSwapBuffers(): finishes whatever was drawn and
+ *                   submits the frame (projection layer after a stereo race frame,
+ *                   floating quad layer for a menu), then opens the next frame. */
+void VrFrameBegin(void);
+void VrMonoBegin(void);
+void VrPresent(void);
+
+/* ---- Race frame driver, called from rmRedisplay() (racerunningmenus.cpp) ---- */
+void VrRaceFrameBegin(void);
+void VrRaceEyeBegin(int eye);
+void VrRaceEyeEnd(int eye);
+void VrRaceFrameEnd(void);
+
+/* Recenter the seated position/yaw on the next race frame. */
+void VrRequestRecenter(void);
+
+/* Eye buffer size in pixels. */
+void VrGetEyeSize(int* w, int* h);
+
+/* Menu screen / race state */
+int  VrInMenu(void);          /* 1 while the floating screen (quad layer) is shown */
+
+/* Virtual joystick read used by tgfclient/control.cpp (GfctrlJoyGetCurrentStates).
+ * Returns 0 and fills *buttons (bitmask) and axes[] for joystick 'index'
+ * (only index 0 exists), -1 otherwise. */
+int VrJoyRead(int index, int* buttons, float* axes);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
