@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <time.h>
 
 extern "C" {
 #include "tbxr/VrCommon.h"
@@ -382,9 +383,20 @@ void VrPresent(void)
     sStereoFrame = false;
     /* Open the next frame right away, eye 0 bound, so that whatever draws next
      * (the event loop, or a screen that paints and swaps on its own during a
-     * blocking load) always has a live frame to draw into. */
+     * blocking load) always has a live frame to draw into.
+     *
+     * This is where an app that keeps up with the display spends its idle time:
+     * xrWaitFrame blocks here until the compositor wants the next frame. Hand the
+     * duration to the perf counters, which would otherwise charge it to whatever
+     * the event loop was doing - drawing - and make a frame with headroom to
+     * spare look exactly saturated. */
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
     TBXR_FrameSetup();
     VrMonoBegin();
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    VrPerfWaited((long long)(t1.tv_sec - t0.tv_sec) * 1000000000LL
+                 + (t1.tv_nsec - t0.tv_nsec));
 }
 
 } /* extern "C" */

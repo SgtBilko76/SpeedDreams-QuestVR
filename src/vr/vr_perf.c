@@ -5,8 +5,11 @@
  * is drawn into an eye buffer we cannot capture. So the event loop marks the end
  * of each phase of its iteration and this accumulates the deltas:
  *
- *   wait   time inside VrFrameBegin, i.e. blocked in xrWaitFrame. Large when the
- *          app is faster than the display and the compositor is throttling us.
+ *   wait   blocked in xrWaitFrame, i.e. the app is ahead of the display and the
+ *          compositor is pacing it. Most of this is reported by VrPresent, which
+ *          opens the next frame at the end of its work, and is taken back out of
+ *          the phase it was measured in - otherwise a frame that idles against
+ *          the refresh rate reads as one that exactly fills it.
  *   event  controller/menu event dispatch.
  *   sim    physics, robots, sound and the race engine's own update.
  *   draw   the render itself, including the OpenXR submit at the end of it.
@@ -37,6 +40,7 @@ extern long gl4es_drawVerts;
 #define REPORT_PERIOD_NS 5000000000LL   /* 5 s */
 
 static int64_t sPhase[VR_PERF_PHASES];  /* accumulated ns per phase */
+static int64_t sPendingWait;            /* compositor wait inside the current phase */
 static int64_t sLast;                   /* end of the previous phase */
 static int64_t sReportStart;
 static int     sFrames;
@@ -57,6 +61,12 @@ static int64_t nowNs(void)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (int64_t)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
+
+void VrPerfWaited(long long ns)
+{
+    if (ns > 0)
+        sPendingWait += ns;
 }
 
 void VrPerfScene(int slot)
@@ -86,8 +96,16 @@ void VrPerfMark(int phase)
         sLast = now;
         return;
     }
-    if (phase >= 0 && phase < VR_PERF_PHASES)
-        sPhase[phase] += now - sLast;
+    if (phase >= 0 && phase < VR_PERF_PHASES) {
+        int64_t delta = now - sLast;
+        if (sPendingWait > 0) {
+            int64_t waited = sPendingWait < delta ? sPendingWait : delta;
+            sPhase[VR_PERF_WAIT] += waited;
+            delta -= waited;
+        }
+        sPhase[phase] += delta;
+    }
+    sPendingWait = 0;
     sLast = now;
 
     if (phase != VR_PERF_DRAW)
