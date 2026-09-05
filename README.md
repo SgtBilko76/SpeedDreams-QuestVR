@@ -115,6 +115,13 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 | `supersampling` | 1.0 | Eye-buffer scale. Lower it (0.7–0.8) if a race does not hold the frame rate. |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
 
+`vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
+menus and starts that race directly. It is meant for testing over adb, where there is no way to
+point at menu items.
+
+Only the `ssggraph` renderer is available: `osggraph` needs OpenSceneGraph, which is not part of
+this build, and the port forces `ssggraph` whatever the settings file says.
+
 Graphics settings that matter on a mobile GPU are in the game's own Options → Graphics screen:
 view distance ("fov factor" in `graph.xml`), sky dome, precipitation and scene level of detail.
 
@@ -139,9 +146,10 @@ view distance ("fov factor" in `graph.xml`), sky dome, precipitation and scene l
   eyes.
 - **Modules**: the `dlopen` plugin scheme is kept. Each module and robot is `libsd_<name>.so` in the
   APK; the Android branches of `module.cpp` and `linuxspec.cpp` map the requested path to the
-  packaged library. The core is linked with `-Wl,-z,global` so the modules resolve the interface
-  type_info against it, which is what makes `GfModule::getInterface()`'s `dynamic_cast` work
-  (`-Wl,-E` does the same job for the desktop executable).
+  packaged library. The core is linked with `-Wl,-z,global` and defines the type_info for every
+  module interface (`src/vr/vr_rtti.cpp`), so all modules resolve those symbols against the one
+  copy: that is what makes the `dynamic_cast` in `GfModule::getInterface()` work. `-Wl,-E` does the
+  same job for the desktop executable.
 - **Audio**: openal-soft (OpenSL ES backend) for the race, SDL_mixer for menu music and SFX. SDL runs
   without any `org.libsdl.app` Java classes, so two local SDL patches make the paths that need JNI
   degrade gracefully instead of dereferencing null: the audio thread priority call and
