@@ -84,6 +84,12 @@ https://www.speed-dreams.net/assets.json), checks the SHA-256 of every package, 
 out where the game looks - so the result is the full car and track list, and the music that
 comes with the submodule. Interrupted runs resume.
 
+Two things follow from installing the full set. Startup scans every car and track, so it takes
+a few seconds rather than one. And `GfDrivers::ensure_min`, which tops each car category up to
+five drivers by generating them, is disabled on Android: with 91 cars it never converged - it
+wrote another ~76 driver directories on every launch and startup grew to over six minutes. The
+robots ship their own driver definitions, so the cost is a few less-populated categories.
+
 The in-game download manager is **not** available in this port, and the main menu entry for it
 is removed on Android: libcurl here is built without a TLS backend (`cmake/deps.cmake` sets
 `CURL_ENABLE_SSL OFF`) and every asset URL is https, so it could never fetch anything. Pulling
