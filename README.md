@@ -69,8 +69,26 @@ On device the layout is
 Delete `.speed-dreams` to reset settings. The app needs "All files access"; grant it in the dialog
 or with `adb shell appops set com.speeddreamsvr MANAGE_EXTERNAL_STORAGE allow`.
 
-Note: the `speed-dreams-data` submodule ships one track (Jarama) and one car model; everything else
-is downloadable content, which the in-game download manager can fetch.
+The `speed-dreams-data` submodule ships one track (Jarama) and one car model. The rest of the
+game - 74 tracks and 90 cars, 3.4 GB of downloads that unpack to about 4.3 GB - is published
+separately, and `tools/fetch_assets.py` installs it into the staged data before you push:
+
+```powershell
+python tools\fetch_assets.py            # everything; --tracks, --cars or --only <dirs> for less
+python tools\fetch_assets.py --list     # what is available, and how big
+.\tools\push-data.ps1 -Full
+```
+
+It reads the same manifest the game does (`config/downloadservers.xml` ->
+https://www.speed-dreams.net/assets.json), checks the SHA-256 of every package, and lays them
+out where the game looks - so the result is the full car and track list, and the music that
+comes with the submodule. Interrupted runs resume.
+
+The in-game download manager is **not** available in this port, and the main menu entry for it
+is removed on Android: libcurl here is built without a TLS backend (`cmake/deps.cmake` sets
+`CURL_ENABLE_SSL OFF`) and every asset URL is https, so it could never fetch anything. Pulling
+3.4 GB through a headset would be the slow way round in any case. Building curl against mbedTLS
+would bring the menu back if you want it.
 
 ## Run
 
