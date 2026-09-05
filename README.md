@@ -115,7 +115,7 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 | Key | Default | Effect |
 |---|---|---|
 | `refresh` | 72 | Display Hz (72/80/90/120). Higher is smoother only if the frame rate keeps up. |
-| `supersampling` | 0.8 | Eye-buffer scale. The runtime recommends 2800x2933 per eye on a Quest 3, which a race does not hold; raise it towards 1.0 for a sharper picture if your frame rate allows. |
+| `supersampling` | 1.0 | Eye-buffer scale, as a fraction of the runtime's recommended resolution (2800x2933 per eye on a Quest 3). Lower it for a faster, softer picture. Pixels are not what this port is short of, so it buys less than you would think - see "Performance". |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
 
 `vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
@@ -125,17 +125,58 @@ point at menu items.
 Only the `ssggraph` renderer is available: `osggraph` needs OpenSceneGraph, which is not part of
 this build, and the port forces `ssggraph` whatever the settings file says.
 
-Graphics settings that matter on a mobile GPU are in the game's own Options → Graphics screen:
-view distance ("fov factor" in `graph.xml`), sky dome, precipitation and scene level of detail.
+`templates/data/config/graph.xml` ships the VR graphics defaults, and the game refreshes an
+existing user copy from it because the file carries a higher version number - so a change you make
+in Options → Graphics survives only until that number is bumped again. The settings that matter
+here are view distance ("fov factor"), sky dome distance, precipitation and scene level of detail;
+"Performance" below explains why.
+
+## Performance
+
+The renderer is bound by the **number of draw calls**, not by pixels, vertices or physics. A race
+frame on a Quest 3 profiles as 60% gl4es, 22% the Adreno driver and 1% the game's own render code,
+with the GPU around half busy: each GLES draw costs roughly ten microseconds, because gl4es rebuilds
+the whole fixed-function state as shader uniforms for every one of them. Everything below follows
+from that.
+
+- **One draw per mesh.** `cgrVtxTable::draw_geometry_array` used to issue one `glDrawElements` per
+  triangle strip; on Android the strips are flattened once into a single `GL_TRIANGLES` index list.
+  Static track meshes are additionally compiled into a gl4es display list, so their vertices are not
+  re-marshaled per frame and per eye.
+- **Sky dome off** (`graph.xml`). With a dome the game pins the far clip plane at 2.1 x its distance,
+  25 km with the stock 12000, so nothing is ever distance-culled and the whole track is drawn twice
+  a frame. Without it the far plane is `600 * fov factor` and the fog closes in with it.
+- **`fov factor`** is then the draw-distance dial: it scales that far plane directly, so it trades
+  how far you can see against how many meshes are in view.
+- **No rain particles**, no smoke, no skid marks: many small draws is the one thing to avoid.
+
+Every few seconds the app prints what it is doing to logcat:
+
+```
+perf: 36.0 fps (181 frames, 181 in stereo) | wait 0.0  event 0.0  sim 0.0  draw 27.7 ms
+perf: draws per frame by phase | sky 0 | cars 0 | track 1500 | scene 551 | rain 0 | hud 154 | leaves 981
+```
+
+`sim` against `draw` says whether the physics or the renderer is the problem, and the phase line
+says which part of the scene the draws belong to. Compare `draw` with the GPU's own load
+(`adb shell cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage`) to tell a GPU-bound frame from a
+draw-call-bound one. For a full profile, `adb shell simpleperf record --app com.speeddreamsvr -e
+cpu-clock --duration 12 -o /data/local/tmp/sd.data` works on a debug build.
+
+**Shaders** are compiled by gl4es on first use, which stutters. They are saved to
+`/sdcard/SpeedDreamsVR/.gl4es.psa` when a race ends and when the game quits, and reloaded at
+startup. A pre-warmed archive can be shipped in the APK as `android/app/src/main/assets/gl4es.psa`;
+the activity copies it into place on a fresh install.
 
 ## How it works
 
 - **GL**: Speed Dreams and plib call GL 1.x; gl4es (static, `NOEGL`) translates to GLES 2 on the EGL
-  context created by the OpenXR framework. Three local patches are applied to the gl4es v1.1.6
+  context created by the OpenXR framework. Four local patches are applied to the gl4es v1.1.6
   clone: a `gl4es_registerExternalTexture` addition so the OpenXR swapchain images can be used as
   framebuffers, an `#ifdef __ANDROID__` block in `src/glx/hardext.c` that force-enables program
   binaries (the Quest driver supports them but gl4es' probe reports otherwise) so the precompiled
-  shader archive works, and a log on a failed archive write.
+  shader archive works, a log on a failed archive write, and a draw-call counter in `src/gl/fpe.c`
+  that the frame instrumentation reads.
 - **No window**: `GfScrInit` has an Android branch that skips SDL video entirely; the "screen" is one
   eye buffer, and the 2D menus are drawn into a 4:3 view centred in it and shown on an OpenXR quad
   layer. `GfuiSwapBuffers` submits the OpenXR frame instead of swapping a window.
