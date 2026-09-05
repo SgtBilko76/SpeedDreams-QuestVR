@@ -10,6 +10,8 @@ extern "C" {
 void  VrConfigLoad(const char* path);
 float VrConfigGetFloat(const char* key, float def);
 int   VrConfigGetInt(const char* key, int def);
+/* Returns the stored value, or def (may be NULL) when the key is absent. */
+const char* VrConfigGetStr(const char* key, const char* def);
 
 #ifdef __cplusplus
 }

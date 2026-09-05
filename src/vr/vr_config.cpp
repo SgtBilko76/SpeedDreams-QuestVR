@@ -72,4 +72,10 @@ int VrConfigGetInt(const char* key, int def)
     return v ? atoi(v) : def;
 }
 
+const char* VrConfigGetStr(const char* key, const char* def)
+{
+    const char* v = get(key);
+    return v ? v : def;
+}
+
 } /* extern "C" */
