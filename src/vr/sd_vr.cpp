@@ -73,6 +73,7 @@ extern "C" float VrHeadYawRad(void);
 /* TBXR_Common.c tunables */
 extern "C" float SS_MULTIPLIER;
 extern "C" int REFRESH;
+extern "C" int NUM_MULTI_SAMPLES;
 static float gScreenDistance = 2.5f;
 
 /* ------------------------------------------------------------------------- */
@@ -273,8 +274,18 @@ extern "C" void* AppThreadFunction(void* parm)
         gScreenDistance = VrConfigGetFloat("screen_distance", 2.5f);
         if (SS_MULTIPLIER < 0.3f) SS_MULTIPLIER = 0.3f;
         if (SS_MULTIPLIER > 2.0f) SS_MULTIPLIER = 2.0f;
-        ALOGI("VR settings: refresh=%d Hz supersampling=%.2f screen_distance=%.1f",
-              REFRESH, SS_MULTIPLIER, gScreenDistance);
+
+        /* Multisampling for the eye buffers. The framework asks for it through
+         * GL_EXT_multisampled_render_to_texture, so the resolve happens in tile
+         * memory and never costs a full-size buffer read back; on this port it is
+         * close to free, because the frame is spent submitting draw calls on the
+         * CPU and the GPU is only about a quarter busy. 1 disables it. */
+        NUM_MULTI_SAMPLES = VrConfigGetInt("msaa", 4);
+        if (NUM_MULTI_SAMPLES < 1) NUM_MULTI_SAMPLES = 1;
+        if (NUM_MULTI_SAMPLES > 8) NUM_MULTI_SAMPLES = 8;
+
+        ALOGI("VR settings: refresh=%d Hz supersampling=%.2f msaa=%dx screen_distance=%.1f",
+              REFRESH, SS_MULTIPLIER, NUM_MULTI_SAMPLES, gScreenDistance);
     }
 
     /* Java's System.loadLibrary() loads this library into the app's local scope.
