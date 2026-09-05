@@ -56,6 +56,9 @@ static const float HUD_HEIGHT = 1.2f;     /* metres */
 
 extern "C" void VrInvalidateScreenPose(void);   /* sd_vr.cpp */
 
+extern "C" void VrGetEyeSize(int* w, int* h);
+extern "C" void TBXR_ClearFrameBuffer(int width, int height);   /* tbxr/TBXR_Common.c */
+
 /* --------------------------------------------------------------------- math */
 static void quatToMat3(const XrQuaternionf& q, float* m)
 {
@@ -266,7 +269,15 @@ void VrRaceEyeBegin(int eye)
 {
     vr_curEye = eye;
     vr_inStereoFrame = 1;
-    TBXR_prepareEyeBuffer(eye);
+    if (eye == 0 && sMonoActive) {
+        /* The frame opened with eye 0 bound for 2D drawing; the race claims it
+         * now. Re-acquiring the same swapchain image would be an error, so just
+         * take it over. */
+        sMonoActive = false;
+        TBXR_ClearFrameBuffer((int)gAppState.Width, (int)gAppState.Height);
+    } else {
+        TBXR_prepareEyeBuffer(eye);
+    }
     int w, h;
     VrGetEyeSize(&w, &h);
     glViewport(0, 0, w, h);
@@ -290,6 +301,12 @@ void VrRaceFrameEnd(void)
 void VrFrameBegin(void)
 {
     TBXR_FrameSetup();   /* no-op if a frame is already open */
+
+    /* Bind eye 0 straight away, so that whatever draws next lands in it. Screens
+     * that paint themselves and call GfuiSwapBuffers directly (the splash screen,
+     * the loading screen) never go through GfuiRedraw, and would otherwise draw
+     * into no framebuffer at all. */
+    VrMonoBegin();
 }
 
 void VrMonoBegin(void)
@@ -327,9 +344,11 @@ void VrPresent(void)
     TBXR_submitFrame();
 
     sStereoFrame = false;
-    /* Open the next frame right away so that whatever draws next (the event loop
-     * or a blocking loading screen) always has a live frame. */
+    /* Open the next frame right away, eye 0 bound, so that whatever draws next
+     * (the event loop, or a screen that paints and swaps on its own during a
+     * blocking load) always has a live frame to draw into. */
     TBXR_FrameSetup();
+    VrMonoBegin();
 }
 
 } /* extern "C" */
