@@ -103,7 +103,10 @@ keyboard at the bottom of the menu. Point at a key and pull the right trigger, o
 with the left thumbstick and press the trigger.
 
 The driving controls are a virtual joystick, so they can be remapped in Options → Players like any
-other joystick. The stock `joystick` section of `preferences.xml` already matches the layout above.
+other joystick. `templates/data/drivers/human/preferences.xml` ships the player profile that binds
+them; the stock one drives with the mouse and the arrow keys, which do not exist on a headset. The
+game refreshes an existing user profile from it because the file carries a higher version number, so
+a control change on your side survives only until that number is bumped again.
 
 ## Settings
 
@@ -112,7 +115,7 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 | Key | Default | Effect |
 |---|---|---|
 | `refresh` | 72 | Display Hz (72/80/90/120). Higher is smoother only if the frame rate keeps up. |
-| `supersampling` | 1.0 | Eye-buffer scale. Lower it (0.7–0.8) if a race does not hold the frame rate. |
+| `supersampling` | 0.8 | Eye-buffer scale. The runtime recommends 2800x2933 per eye on a Quest 3, which a race does not hold; raise it towards 1.0 for a sharper picture if your frame rate allows. |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
 
 `vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
