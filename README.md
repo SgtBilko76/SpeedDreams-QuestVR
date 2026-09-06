@@ -118,12 +118,12 @@ tracking.
 | Right trigger | select | throttle |
 | Left trigger | back | brake |
 | Left thumbstick | up/down/left/right in lists | steering |
-| A | Enter | — |
+| A | Enter | ABS on/off (and Enter, which starts a race) |
 | B / left menu button | back (same as the left trigger) | pause menu |
-| X | — | ASR toggle |
+| X | — | ASR on/off |
 | Y | recenter the menu screen (hold 1 s) | next camera; hold 1 s to recenter the seated view |
-| Right thumbstick click | — | reverse gear |
-| Left thumbstick click | — | neutral |
+| Right thumbstick click | — | rear-view mirror on/off |
+| Left thumbstick click | — | reverse gear |
 | Right grip | — | up shift |
 | Left grip | — | down shift |
 
@@ -153,6 +153,9 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 | `supersampling` | 1.0 | Eye-buffer scale, as a fraction of the runtime's recommended resolution (2800x2933 per eye on a Quest 3). Lowering it buys very little - halving it to 1400x1466 measured 36 -> 34 fps, because the renderer is bound by draw calls and not by pixels (see "Performance"). |
 | `msaa` | 2 | Multisample antialiasing on the eye buffers: 1 (off), 2, 4 or 8. Resolved in tile memory (`GL_EXT_multisampled_render_to_texture`), so much cheaper than the equivalent supersampling, but not free - and how far from free depends on the scene. On the stock data: 1 = 65-69 fps, 2 = 63-71, 4 = 52-56. With the full content set and a grid, where the GPU is the busier half, dropping from 2 to 1 is worth about 5 fps. |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
+| `mirror_scale` | 0.325 | Rear-view mirror size, as a fraction of what the game uses on a monitor - where it is half the screen wide, which is enormous when that "screen" is your whole field of view. |
+| `mirror_height_deg` | 25 | How far above straight ahead the mirror sits. |
+| `mirror_distance` | 1.0 | How far away it sits, in metres. This is what the two eyes converge on: if it will not fuse into one mirror, change this. |
 
 `vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
 menus and starts that race directly. It is meant for testing over adb, where there is no way to
@@ -238,12 +241,17 @@ the activity copies it into place on a fresh install.
 ## How it works
 
 - **GL**: Speed Dreams and plib call GL 1.x; gl4es (static, `NOEGL`) translates to GLES 2 on the EGL
-  context created by the OpenXR framework. Four local patches are applied to the gl4es v1.1.6
+  context created by the OpenXR framework. Five local patches are applied to the gl4es v1.1.6
   clone: a `gl4es_registerExternalTexture` addition so the OpenXR swapchain images can be used as
   framebuffers, an `#ifdef __ANDROID__` block in `src/glx/hardext.c` that force-enables program
   binaries (the Quest driver supports them but gl4es' probe reports otherwise) so the precompiled
-  shader archive works, a log on a failed archive write, and a draw-call counter in `src/gl/fpe.c`
-  that the frame instrumentation reads.
+  shader archive works, a log on a failed archive write, a draw-call counter in `src/gl/fpe.c`
+  that the frame instrumentation reads, and `glTexParameterf/i` recording themselves in a
+  display list instead of reaching `glTexParameterfv`. The scalar forms pass the address of a
+  stack local, and the list packs a pointer argument as the pointer, so every texture
+  parameter compiled into one of the track display lists was replayed by reading a stack
+  frame that had long since gone. It never crashed - it set the parameter from whatever was
+  there.
 - **No window**: `GfScrInit` has an Android branch that skips SDL video entirely; the "screen" is one
   eye buffer, and the 2D menus are drawn into a 4:3 view centred in it and shown on an OpenXR quad
   layer. `GfuiSwapBuffers` submits the OpenXR frame instead of swapping a window.
@@ -270,11 +278,14 @@ the activity copies it into place on a fresh install.
 
 ### Things that are off in VR
 
-- The rear-view mirror: it needs a second render pass into a texture, which gl4es cannot do on the
-  OpenXR eye framebuffers. Turn your head instead.
-- Screenshots: `glReadPixels` on the eye framebuffer comes back empty.
+- Split screen: there is one pair of eyes, and a split would halve the eye buffer for a second
+  player who cannot be there. The renderer forces a single screen.
+- The rear-view mirror is off by default rather than unavailable: it draws the whole scene a
+  second time per eye, which roughly halves the frame rate. The right stick click turns it on.
+- Screenshots: `glReadPixels` on the eye framebuffer comes back empty. `adb exec-out screencap`
+  captures what the compositor shows, which is the way to see what the headset sees.
 - The track map is rasterised on the CPU instead of being rendered and read back.
-- Texture compression and multisampling: not available through gl4es here.
+- Texture compression: not available through gl4es here. Multisampling is (see `msaa`).
 
 ## License
 
