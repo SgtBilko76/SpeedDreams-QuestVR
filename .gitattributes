@@ -1,0 +1,3 @@
+# Keep the CA bundle byte-exact: it is data, not source, and a checkout that
+# rewrote its line endings would be staged and pushed to the device as-is.
+templates/data/config/cacert.pem -text
