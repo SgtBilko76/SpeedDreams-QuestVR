@@ -31,9 +31,12 @@
         </intent>
     </queries>
 
+    <!-- The icon is generated from the project's own splash art, letterboxed onto a
+         square: a centre crop would cut the wordmark in half. -->
     <application
         android:allowBackup="false"
         android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
         android:extractNativeLibs="true"
         android:hasCode="true">
