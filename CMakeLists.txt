@@ -14,6 +14,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS OFF)
 
+# AddressSanitizer build, for chasing memory errors on the device:
+#   cd android && .\gradlew assembleDebug -PsdvrAsan=true
+# Needs the debug variant - the ASan runtime is preloaded by lib/<abi>/wrap.sh,
+# which Android only honours for a debuggable app. Everything this build compiles
+# is instrumented; the game runs several times slower, which is fine for
+# reproducing a crash but not for judging frame rates.
+option(SDVR_ASAN "Build with AddressSanitizer" OFF)
+if(SDVR_ASAN)
+    message(STATUS "AddressSanitizer enabled")
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
+    add_link_options(-fsanitize=address)
+endif()
+
 # OpenXR loader + headers via the Maven AAR (prefab).
 find_package(OpenXR REQUIRED CONFIG)
 

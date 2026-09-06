@@ -2,6 +2,11 @@ plugins {
     id 'com.android.application'
 }
 
+// AddressSanitizer build:  .\gradlew assembleDebug -PsdvrAsan=true
+// Debug only - the runtime is preloaded by lib/<abi>/wrap.sh, which Android
+// honours only for a debuggable app.
+def sdvrAsan = project.hasProperty('sdvrAsan') && project.property('sdvrAsan').toString().toBoolean()
+
 android {
     namespace 'com.speeddreamsvr'
     compileSdk 34
@@ -19,6 +24,9 @@ android {
                 // c++_shared: several modules and the core all use the STL, and
                 // they are separate .so files loaded into one process.
                 arguments '-DANDROID_STL=c++_shared', '-DANDROID_PLATFORM=android-29'
+                if (sdvrAsan) {
+                    arguments '-DSDVR_ASAN=ON'
+                }
                 targets 'sdvr',
                         'sd_ssggraph', 'sd_snddefault', 'sd_simuv5', 'sd_trackv1',
                         'sd_standardgame', 'sd_legacymenu', 'sd_telemetryv1',
@@ -28,6 +36,16 @@ android {
         }
         ndk {
             abiFilters 'arm64-v8a'
+        }
+    }
+
+    // The ASan runtime and wrap.sh only exist in an ASan build.
+    sourceSets {
+        main {
+            if (sdvrAsan) {
+                jniLibs.srcDirs += 'src/asan/jniLibs'
+                resources.srcDirs += 'src/asan/resources'
+            }
         }
     }
 
