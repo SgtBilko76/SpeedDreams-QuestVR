@@ -178,6 +178,67 @@ void VrGetEyeSize(int* w, int* h)
     *h = (int)gAppState.Height;
 }
 
+/* Place a rectangle in the eye buffer so that it appears at a given direction and
+ * distance from the viewer, in both eyes.
+ *
+ * Anything drawn at fixed pixel coordinates - the rear-view mirror, say - cannot
+ * simply use the same rectangle in both eyes. The two frusta are asymmetric and
+ * not mirror images of each other, so the same pixel is a different direction in
+ * each eye; and with no parallax at all the rectangle would sit at infinity while
+ * the cockpit around it is an arm's length away. Either alone is enough to stop
+ * the eyes fusing it, which is why it reads as two mirrors.
+ *
+ * So work the other way round: choose where the thing should be in the world -
+ * yaw and pitch from straight ahead, and a distance - and solve for the pixel
+ * position in whichever eye is being drawn.
+ *
+ *   yaw, pitch  radians from straight ahead; pitch positive is up
+ *   distance    metres, for the parallax between the eyes
+ *   w, h        size of the rectangle in pixels
+ *   x, y        bottom-left corner for glViewport
+ */
+void VrPlaceEyeRect(float yaw, float pitch, float distance, int w, int h, int* x, int* y)
+{
+    int bw = 0, bh = 0;
+    VrGetEyeSize(&bw, &bh);
+    if (x) *x = (bw - w) / 2;
+    if (y) *y = (bh - h) / 2;
+
+    if (!vr_inStereoFrame || distance <= 0.05f || bw <= 0 || bh <= 0) {
+        return;
+    }
+
+    const float* f = vr_eyeFov[vr_curEye];
+
+    /* A perspective projection is linear in the tangent of the angle, not in the
+     * angle - and these frusta reach past fifty degrees, where the two are not
+     * remotely the same. Working in angles left enough error between the eyes to
+     * keep the mirror from fusing. */
+    const float tanL = tanf(f[0]), tanR = tanf(f[1]);
+    const float tanD = tanf(f[3]), tanU = tanf(f[2]);
+    if (tanR - tanL < 0.01f || tanU - tanD < 0.01f) {
+        return;
+    }
+
+    /* Half the interpupillary distance, from the poses the runtime gave us. The
+     * left eye sees a point ahead to the right of its own axis, and vice versa. */
+    float ipd = 0.063f;                      /* a sane default if the poses are not up yet */
+    const float dx = sEyePos[1][0] - sEyePos[0][0];
+    const float dy = sEyePos[1][1] - sEyePos[0][1];
+    const float dz = sEyePos[1][2] - sEyePos[0][2];
+    const float measured = sqrtf(dx * dx + dy * dy + dz * dz);
+    if (measured > 0.03f && measured < 0.09f) {
+        ipd = measured;
+    }
+
+    const float sign = (vr_curEye == 0) ? 1.0f : -1.0f;
+    const float tx = tanf(yaw) + sign * (ipd * 0.5f) / distance;
+    const float ty = tanf(pitch);
+
+    if (x) *x = (int)((float)bw * (tx - tanL) / (tanR - tanL)) - w / 2;
+    if (y) *y = (int)((float)bh * (ty - tanD) / (tanU - tanD)) - h / 2;
+}
+
 int VrInMenu(void)
 {
     return sUseScreenLayer ? 1 : 0;
