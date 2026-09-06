@@ -209,12 +209,17 @@ void VrInputUpdate(void)
     int b = 0;
     if (R.Buttons & xrButton_GripTrigger) b |= 1 << 0;   /* BTN1 = up shift   (right grip) */
     if (L.Buttons & xrButton_GripTrigger) b |= 1 << 1;   /* BTN2 = down shift (left grip)  */
-    if (R.Buttons & xrButton_RThumb)      b |= 1 << 3;   /* BTN4 = reverse gear */
+    if (R.Buttons & xrButton_A)           b |= 1 << 2;   /* BTN3 = ABS toggle (A) */
     if (L.Buttons & xrButton_LThumb)      b |= 1 << 4;   /* BTN5 = neutral */
     if (L.Buttons & xrButton_X)           b |= 1 << 5;   /* BTN6 = ASR toggle */
     sButtons = b;
 
-    const bool inMenu = VrInMenu() != 0;
+    /* Not VrInMenu(): that reads the screen-layer flag, which VrPresent sets back
+     * to "menu" when it opens the next frame - so by the time input runs it says
+     * menu even in the middle of a race. Harmless while this block only moved a
+     * cursor, but it made the left trigger send Escape instead of braking. What
+     * the last presented frame actually was is the honest answer. */
+    const bool inMenu = !VrFrameWasStereo();
 
     if (inMenu) {
         /* ---- menu cursor ---- */
@@ -301,8 +306,18 @@ void VrInputUpdate(void)
         VrQueueKey(SDLK_F2, 0, 0, 0);
     }
 
+    /* A is both Enter and the ABS toggle (BTN3 above). Enter is what starts a
+     * race from the screens that lead into it, and means nothing once you are
+     * driving, so both can sit on the same button. */
     if (rNew & xrButton_A) VrQueueKey(SDLK_RETURN, 1, 0, 0);
     if (rRel & xrButton_A) VrQueueKey(SDLK_RETURN, 0, 0, 0);
+
+    /* Right stick click: the rear-view mirror. ssggraph registers it as the "9"
+     * key on the race screen rather than as a player control, so send that. */
+    if (!inMenu && (rNew & xrButton_RThumb)) {
+        VrQueueKey(SDLK_9, 1, 0, 0);
+        VrQueueKey(SDLK_9, 0, 0, 0);
+    }
     if (rNew & xrButton_B) VrQueueKey(SDLK_ESCAPE, 1, 0, 0);
     if (rRel & xrButton_B) VrQueueKey(SDLK_ESCAPE, 0, 0, 0);
     if (lNew & xrButton_Enter) VrQueueKey(SDLK_ESCAPE, 1, 0, 0);

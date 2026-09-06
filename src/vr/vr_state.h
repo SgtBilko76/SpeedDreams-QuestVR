@@ -66,6 +66,13 @@ void VrGetEyeSize(int* w, int* h);
 /* Menu screen / race state */
 int  VrInMenu(void);          /* 1 while the floating screen (quad layer) is shown */
 
+/* Where to put a w x h rectangle in the eye buffer so that it appears at the given
+ * direction (radians from straight ahead, pitch positive up) and distance, in
+ * both eyes. See the definition: the two frusta are asymmetric, so the same
+ * pixels are not the same direction in each eye. */
+void VrPlaceEyeRect(float yaw, float pitch, float distance, int w, int h,
+                    int* x, int* y);
+
 int  VrFrameWasStereo(void);   /* the frame just presented was a stereo race frame */
 
 /* Virtual joystick read used by tgfclient/control.cpp (GfctrlJoyGetCurrentStates).
