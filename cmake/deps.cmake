@@ -172,7 +172,22 @@ add_subdirectory(${TP_DIR}/enet EXCLUDE_FROM_ALL)
 target_include_directories(enet PUBLIC ${TP_DIR}/enet/include)
 target_compile_options(enet PRIVATE ${DEP_C_QUIET})
 
-# ---------------------------------------------------------------- curl (HTTP only, no TLS)
+# ---------------------------------------------------------------- mbedTLS (for curl)
+# curl needs a TLS backend: every URL the in-game download manager fetches is
+# https. mbedTLS is the small one - a few hundred KB of static library against
+# OpenSSL's several MB - and it needs no platform crypto, which suits a build
+# that has no NDK OpenSSL to link against.
+set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "" FORCE)
+set(GEN_FILES OFF CACHE BOOL "" FORCE)
+add_subdirectory(${TP_DIR}/mbedtls ${CMAKE_BINARY_DIR}/mbedtls EXCLUDE_FROM_ALL)
+set(MBEDTLS_INCLUDE_DIRS ${TP_DIR}/mbedtls/include CACHE PATH "" FORCE)
+set(MBEDTLS_LIBRARY     mbedtls  CACHE STRING "" FORCE)
+set(MBEDX509_LIBRARY    mbedx509 CACHE STRING "" FORCE)
+set(MBEDCRYPTO_LIBRARY  mbedcrypto CACHE STRING "" FORCE)
+
+# ---------------------------------------------------------------- curl (HTTP/HTTPS over mbedTLS)
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
 set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
 set(BUILD_STATIC_CURL OFF CACHE BOOL "" FORCE)
@@ -180,8 +195,9 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(BUILD_LIBCURL_DOCS OFF CACHE BOOL "" FORCE)
 set(BUILD_MISC_DOCS OFF CACHE BOOL "" FORCE)
 set(ENABLE_CURL_MANUAL OFF CACHE BOOL "" FORCE)
-set(CURL_ENABLE_SSL OFF CACHE BOOL "" FORCE)
+set(CURL_ENABLE_SSL ON CACHE BOOL "" FORCE)
 set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
+set(CURL_USE_MBEDTLS ON CACHE BOOL "" FORCE)
 set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
 set(CURL_USE_LIBSSH2 OFF CACHE BOOL "" FORCE)
 set(USE_LIBIDN2 OFF CACHE BOOL "" FORCE)
@@ -191,8 +207,16 @@ set(CURL_BROTLI OFF CACHE BOOL "" FORCE)
 set(CURL_ZSTD OFF CACHE BOOL "" FORCE)
 set(HTTP_ONLY ON CACHE BOOL "" FORCE)
 set(CURL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
-set(CURL_CA_BUNDLE "none" CACHE STRING "" FORCE)
+# curl exports its targets even with installation disabled, and mbedTLS is an
+# in-tree subproject whose targets belong to no export set - which CMake refuses.
+# Nothing here is installed or consumed from outside this build.
+set(CURL_ENABLE_EXPORT_TARGET OFF CACHE BOOL "" FORCE)
+# No system trust store on the device: the CA bundle ships with the game data and
+# transfer::start points curl at it (CURLOPT_CAINFO). The compile-time default is
+# the same path, for anything that does not go through there.
+set(CURL_CA_BUNDLE "/sdcard/SpeedDreamsVR/data/config/cacert.pem" CACHE STRING "" FORCE)
 set(CURL_CA_PATH "none" CACHE STRING "" FORCE)
+set(CURL_CA_FALLBACK OFF CACHE BOOL "" FORCE)
 add_subdirectory(${TP_DIR}/curl EXCLUDE_FROM_ALL)
 set(CURL_INCLUDE ${TP_DIR}/curl/include)
 

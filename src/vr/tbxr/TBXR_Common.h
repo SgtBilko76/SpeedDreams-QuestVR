@@ -176,7 +176,12 @@ typedef struct
 typedef union {
     XrCompositionLayerProjection Projection;
     XrCompositionLayerQuad Quad;
+    XrCompositionLayerCylinderKHR Cylinder;
 } xrCompositorLayer_Union;
+
+/* Set once the instance is up: the runtime supports XR_KHR_composition_layer
+ * cylinder, so the menu screen can be a curved panel instead of a flat quad. */
+extern bool TBXR_HasCylinderLayer;
 
 #define GL(func) func;
 
@@ -361,6 +366,9 @@ bool VR_UseScreenLayer();
 float VR_GetScreenLayerDistance();
 void VR_GetScreenLayerRect(int* x, int* y, int* w, int* h, float* sizeX, float* sizeY);
 void VrGetScreenQuad(XrPosef* pose, float* sizeX, float* sizeY);
+/* The same screen as a cylinder wrapped around the viewer (see sd_vr.cpp).
+ * Returns 0 when the runtime has no cylinder layer and the quad is used. */
+int VrGetScreenCylinder(XrPosef* pose, float* radius, float* centralAngle, float* height);
 bool VR_GetVRProjection(int eye, float zNear, float zFar, float* projection);
 void VR_HandleControllerInput();
 void VR_SetHMDOrientation(float pitch, float yaw, float roll );

@@ -146,6 +146,53 @@ void VrGetScreenQuad(XrPosef* pose, float* sizeX, float* sizeY)
     *sizeY = sy;
 }
 
+/* The same screen expressed as a cylinder wrapped around the viewer, which is how
+ * it is composited when the runtime has XR_KHR_composition_layer_cylinder.
+ *
+ * The quad form has its pose on the panel; the cylinder form has it on the axis,
+ * which is the head - so the surface sits the same distance away at every angle
+ * and is square-on wherever you look. That is what makes a wide menu comfortable:
+ * a flat panel this size has its far edges both further away and turned away.
+ *
+ *   pose          on the axis, +Z pointing back at the viewer (as for the quad)
+ *   radius        distance to the surface
+ *   centralAngle  angular width, so that radius * centralAngle is the arc width
+ *   height        panel height in metres
+ *
+ * Returns 0 when the curved layer is not in use, so callers fall back to the quad.
+ */
+extern "C" bool TBXR_HasCylinderLayer;
+
+int VrGetScreenCylinder(XrPosef* pose, float* radius, float* centralAngle, float* height)
+{
+    if (!TBXR_HasCylinderLayer) {
+        return 0;
+    }
+
+    XrPosef quad;
+    float sx = 0.0f, sy = 0.0f;
+    VrGetScreenQuad(&quad, &sx, &sy);
+
+    const float r = VR_GetScreenLayerDistance();
+
+    /* Push the pose from the panel back to the axis, along the panel normal (+Z of
+     * the orientation, which points at the viewer). */
+    const XrQuaternionf q = quad.orientation;
+    const float zx = 2.0f * (q.x * q.z + q.w * q.y);
+    const float zy = 2.0f * (q.y * q.z - q.w * q.x);
+    const float zz = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+
+    *pose = quad;
+    pose->position.x += zx * r;
+    pose->position.y += zy * r;
+    pose->position.z += zz * r;
+
+    *radius = r;
+    *centralAngle = sx / r;
+    *height = sy;
+    return 1;
+}
+
 bool VR_GetVRProjection(int eye, float zNear, float zFar, float* projection)
 {
     XrMatrix4x4f_CreateProjectionFov(&gAppState.ProjectionMatrices[eye], GRAPHICS_OPENGL_ES,
