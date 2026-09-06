@@ -145,7 +145,7 @@ Edit `/sdcard/SpeedDreamsVR/vr.cfg` and restart the app:
 |---|---|---|
 | `refresh` | 72 | Display Hz (72/80/90/120). Higher is smoother only if the frame rate keeps up. |
 | `supersampling` | 1.0 | Eye-buffer scale, as a fraction of the runtime's recommended resolution (2800x2933 per eye on a Quest 3). Lowering it buys very little - halving it to 1400x1466 measured 36 -> 34 fps, because the renderer is bound by draw calls and not by pixels (see "Performance"). |
-| `msaa` | 2 | Multisample antialiasing on the eye buffers: 1 (off), 2, 4 or 8. Resolved in tile memory (`GL_EXT_multisampled_render_to_texture`), so much cheaper than the equivalent supersampling, but not free - measured at Jarama: 1 = 65-69 fps, 2 = 63-71, 4 = 52-56. |
+| `msaa` | 2 | Multisample antialiasing on the eye buffers: 1 (off), 2, 4 or 8. Resolved in tile memory (`GL_EXT_multisampled_render_to_texture`), so much cheaper than the equivalent supersampling, but not free - and how far from free depends on the scene. On the stock data: 1 = 65-69 fps, 2 = 63-71, 4 = 52-56. With the full content set and a grid, where the GPU is the busier half, dropping from 2 to 1 is worth about 5 fps. |
 | `screen_distance` | 2.5 | Distance of the floating menu screen, in metres. |
 
 `vr.cfg` also understands `startrace = <race name>` (for instance `practice`), which skips the
@@ -185,11 +185,25 @@ from that.
   that sit in the same branch of the scene leaves 1011. Merging is kept inside a branch so
   that a merged mesh stays spatially compact and can still be culled.
 
-Together those took a race at Jarama from 29 to 65-69 fps. Where quality is concerned the
-trade runs the other way: the GPU is only a third busy, so antialiasing and texture
-filtering are close to free while draw calls are not. `msaa`, 16x anisotropic filtering and
-full-size textures (the last two in `templates/data/config/screen.xml`) are all worth more
-here than they would be on a GPU-bound port.
+Together those took a race at Jarama from 29 to 65-69 fps, measured on the data the submodule
+ships: one car on an empty track.
+
+**That balance shifts once the full content set is installed.** The downloadable cars carry far
+more geometry than the stock one - a grid of them is 250 draws a frame rather than 75 - and at
+the full eye buffer the GPU then runs 80-85% busy rather than a third. Antialiasing stops being
+nearly free at that point: measured at 450 m with a grid, `msaa = 1` against `msaa = 2` is worth
+about 5 fps median and 8 at the low end. 16x anisotropic filtering and full-size textures
+(`templates/data/config/screen.xml`) still cost nothing measurable. Check `gpu_busy_percentage`
+before assuming which side of the balance a given scene sits on - the answer changed once, and it
+will change again with a different track, car or grid size.
+
+**Small-feature culling does not help here, and was tried.** Skipping meshes whose bounding sphere
+covers less than a couple of pixels sounds like the way to buy view distance cheaply, since most of
+what a longer view adds is trackside clutter. It rejects almost nothing: the mesh merge above has
+already folded those small objects into large same-texture clusters, so there are no small meshes
+left to reject. Raising the threshold to 20 px - enough to visibly delete large objects - moved the
+track's draw count from 1271 to 1286, i.e. not at all. The two ideas are mutually exclusive and
+merging is worth much more. Buy distance with `msaa` instead, or accept the frame rate.
 
 Every few seconds the app prints what it is doing to logcat:
 
