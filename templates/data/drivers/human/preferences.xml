@@ -32,7 +32,18 @@
         <attstr name="ABS on" in="yes,no" val="yes"/>
         <attstr name="ASR on" in="yes,no" val="yes"/>
         <attnum name="programmed pit stops" val="0"/>
-        <attnum name="steer sensitivity" val="1.0"/>
+        <!-- A thumbstick gives full lock over about fifteen millimetres of
+             travel, so a linear response is far too quick to be driveable.
+             "steer sensitivity" is the reciprocal of the exponent applied to
+             the deflection: below 1 it flattens the response around centre,
+             where the small corrections are, and keeps full lock at the stop.
+             "steer speed sensitivity" then divides the result by
+             1 + s * speed / 100 (speed in m/s), which takes the twitch out at
+             racing speed without making the car sluggish in the pits.
+             The stick already has an 8% dead zone in the VR input layer, so
+             this one stays at zero rather than stacking a second one. -->
+        <attnum name="steer sensitivity" val="0.6"/>
+        <attnum name="steer speed sensitivity" val="0.7"/>
         <attnum name="steer dead zone" val="0.0"/>
         <!-- Left thumbstick X, -1 (full left) .. +1 (full right); the sign of
              "power" picks the polarity of each half. -->
