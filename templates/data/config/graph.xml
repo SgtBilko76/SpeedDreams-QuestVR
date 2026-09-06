@@ -13,7 +13,7 @@
 
 <!DOCTYPE params SYSTEM "../../../libs/tgf/params.dtd">
 
-<params name="graph" type="param" mode="mw" version="1.24">
+<params name="graph" type="param" mode="mw" version="1.25">
 	<section name="Graphic">
       <attnum name="smoke value" val="0"/>
     	<attnum name="smoke interval" val="0.01"/>
@@ -124,6 +124,10 @@
     <section name="0">
       <attnum name="camera" val="0"/>
       <attnum name="camera head list" val="1"/>
+      <!-- VR: the mirror draws the whole scene a second time per eye, and this
+           port is bound by draw calls - it roughly halves the frame rate. Off by
+           default; the right stick click turns it on when you want a look. -->
+      <attnum name="enable mirror" val="0"/>
       <attnum name="board width" val="100"/>
       <attnum name="speedometer vertical position" val="0"/>
     </section>

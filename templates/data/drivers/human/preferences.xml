@@ -13,7 +13,7 @@
 
 <!DOCTYPE params SYSTEM "../../libs/tgf/params.dtd">
 
-<params mode="mw" type="template" name="Player Pref" version="1.11">
+<params mode="mw" type="template" name="Player Pref" version="1.12">
 
   <section name="Preferences">
 
@@ -58,11 +58,13 @@
         <attnum name="brake power" val="1.0"/>
         <attstr name="up shift" val="BTN1-0"/>
         <attstr name="down shift" val="BTN2-0"/>
-        <attstr name="reverse gear" val="BTN4-0"/>
-        <attstr name="neutral gear" val="BTN5-0"/>
+        <!-- Reverse moves to the left stick click, because the right one is the
+             mirror now and an automatic gearbox has no use for neutral. -->
+        <attstr name="reverse gear" val="BTN5-0"/>
+        <attstr name="neutral gear" val=""/>
         <attstr name="ebrake cmd" val=""/>
+        <attstr name="ABS cmd" val="BTN3-0"/>
         <attstr name="ASR cmd" val="BTN6-0"/>
-        <attstr name="ABS cmd" val="a"/>
         <attstr name="Light1 cmd" val="l"/>
         <attstr name="Speed Limiter" val="s"/>
         <attstr name="camera look behind" val="b"/>
