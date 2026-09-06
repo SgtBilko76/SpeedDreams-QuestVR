@@ -58,6 +58,7 @@ PFNEGLGETSYNCATTRIBKHRPROC		eglGetSyncAttribKHR;
 int NUM_MULTI_SAMPLES	= 1;
 int REFRESH	            = 0;
 float SS_MULTIPLIER    = 0.75f;
+bool TBXR_HasCylinderLayer = false;
 
 GLboolean stageSupported = GL_FALSE;
 
@@ -1739,6 +1740,13 @@ void TBXR_InitialiseOpenXR()
 			XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME,
 			enabledExtensions,
 			&enabledExtensionCount);
+	/* Curved menu screen. Optional: without it the menu is drawn on a flat quad. */
+	TBXR_HasCylinderLayer = TBXR_AddExtensionIfAvailable(
+			availableExtensions,
+			availableExtensionCount,
+			XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME,
+			enabledExtensions,
+			&enabledExtensionCount);
 
 	bool picoRuntime = TBXR_AddExtensionIfAvailable(
 			availableExtensions,
@@ -2184,7 +2192,28 @@ void TBXR_submitFrame()
 		XrExtent2Df size = {sizeX, sizeY};
 		quad_layer.size = size;
 
-		gAppState.Layers[gAppState.LayerCount++].Quad = quad_layer;
+		XrPosef cylPose;
+		float cylRadius = 0.0f, cylAngle = 0.0f, cylHeight = 0.0f;
+		if (VrGetScreenCylinder(&cylPose, &cylRadius, &cylAngle, &cylHeight)) {
+			/* Wrap the same image onto a cylinder centred on the viewer instead of a
+			 * flat panel: every part of a wide menu is then the same distance away
+			 * and square-on, which is what makes a big screen readable in a headset. */
+			XrCompositionLayerCylinderKHR cyl = {};
+			cyl.type = XR_TYPE_COMPOSITION_LAYER_CYLINDER_KHR;
+			cyl.next = NULL;
+			cyl.layerFlags = quad_layer.layerFlags;
+			cyl.space = quad_layer.space;
+			cyl.eyeVisibility = quad_layer.eyeVisibility;
+			cyl.subImage = quad_layer.subImage;
+			cyl.pose = cylPose;
+			cyl.radius = cylRadius;
+			cyl.centralAngle = cylAngle;
+			cyl.aspectRatio = (cylRadius * cylAngle) / cylHeight;
+
+			gAppState.Layers[gAppState.LayerCount++].Cylinder = cyl;
+		} else {
+			gAppState.Layers[gAppState.LayerCount++].Quad = quad_layer;
+		}
 	}
 
 	// Compose the layers for this frame.
