@@ -53,6 +53,7 @@ static bool sCursorInit = false;
 
 static uint32_t sPrevLeftButtons = 0, sPrevRightButtons = 0;
 static float sPrevRightTrigger = 0.0f;
+static float sPrevLeftTrigger = 0.0f;
 static int sPrevStickDir = 0;
 
 static float deadzone(float v, float dz)
@@ -269,6 +270,15 @@ void VrInputUpdate(void)
             }
         }
         sPrevRightTrigger = R.IndexTrigger;
+
+        /* Left trigger goes back, mirroring the right one selecting. The two
+         * triggers are what a hand naturally finds without looking, which the
+         * face buttons are not; B and the left menu button still work. */
+        if (L.IndexTrigger > 0.5f && sPrevLeftTrigger <= 0.5f) {
+            VrQueueKey(SDLK_ESCAPE, 1, 0, 0);
+            VrQueueKey(SDLK_ESCAPE, 0, 0, 0);
+        }
+        sPrevLeftTrigger = L.IndexTrigger;
     }
 
     double nowMs = TBXR_GetTimeInMilliSeconds();
