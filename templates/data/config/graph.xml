@@ -13,7 +13,7 @@
 
 <!DOCTYPE params SYSTEM "../../../libs/tgf/params.dtd">
 
-<params name="graph" type="param" mode="mw" version="1.23">
+<params name="graph" type="param" mode="mw" version="1.24">
 	<section name="Graphic">
       <attnum name="smoke value" val="0"/>
     	<attnum name="smoke interval" val="0.01"/>
@@ -23,7 +23,13 @@
     	<attnum name="skid length" val="300"/>
     	<attnum name="skid interval" val="0.05"/>
 
-      <attnum name="fov factor" unit="%" val="50"/>
+      <!-- VR: view distance. It scales the race camera's far clip plane directly
+           (far = 600 * this, with the fog closing in over the second half), so it is
+           the dial between how far you can see and how many meshes are in frame -
+           which is what this port spends its frame on. Measured at Jarama: 50% holds
+           72 fps, 75% sits around 65 and dips to 50 in the busiest views, 100% around
+           57. Options -> Graphics offers 25/50/75 live if you want to trade back. -->
+      <attnum name="fov factor" unit="%" val="75"/>
     	<attnum name="LOD Factor" val="1"/>
       <!-- VR: the sky dome is off, and that is a performance setting rather than a
            cosmetic one. With a dome the game pins the far clip plane at
