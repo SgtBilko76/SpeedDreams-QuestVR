@@ -115,17 +115,23 @@ tracking.
 | Input | Menus | Race |
 |---|---|---|
 | Right hand pointer | move the cursor | — |
-| Right trigger | click | throttle |
-| Left trigger | — | brake |
+| Right trigger | select | throttle |
+| Left trigger | back | brake |
 | Left thumbstick | up/down/left/right in lists | steering |
 | A | Enter | — |
-| B / left menu button | Escape / back | pause menu |
+| B / left menu button | back (same as the left trigger) | pause menu |
 | X | — | ASR toggle |
-| Y | — | next camera; hold 1 s to recenter the seated view |
+| Y | recenter the menu screen (hold 1 s) | next camera; hold 1 s to recenter the seated view |
 | Right thumbstick click | — | reverse gear |
 | Left thumbstick click | — | neutral |
 | Right grip | — | up shift |
 | Left grip | — | down shift |
+
+The menu screen is anchored in front of you the first time it is shown, and stays put in the
+room after that so you can look around it. Walk somewhere else during a long session and it stays
+where it was - which puts the pointer off to one side of it, since the two are the same geometry.
+**Hold Y for a second to re-anchor it** in front of you again; that also recenters the seated
+driving position.
 
 **Text entry:** selecting a text field (the player name, for instance) brings up an on-screen
 keyboard at the bottom of the menu. Point at a key and pull the right trigger, or move the highlight
