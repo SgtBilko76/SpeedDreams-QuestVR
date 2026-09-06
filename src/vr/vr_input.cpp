@@ -86,6 +86,60 @@ static bool aimRayToScreen(float* px, float* py)
     float sx, sy;
     VrGetScreenQuad(&quad, &sx, &sy);
 
+    float u, v;
+    XrPosef cyl;
+    float radius = 0.0f, angle = 0.0f, height = 0.0f;
+    if (VrGetScreenCylinder(&cyl, &radius, &angle, &height)) {
+        /* Curved screen: intersect the aim ray with the cylinder rather than with
+         * a plane, or the cursor drifts from the ray towards the edges - the very
+         * place a wide menu puts its buttons. The viewer is inside the cylinder,
+         * so a forward ray always meets the surface exactly once. */
+        const float up[3] = {0, 1, 0}, right[3] = {1, 0, 0}, back[3] = {0, 0, 1};
+        float Y[3], X[3], F[3];
+        quatRotate(cyl.orientation, up, Y);
+        quatRotate(cyl.orientation, right, X);
+        quatRotate(cyl.orientation, back, F);
+        F[0] = -F[0]; F[1] = -F[1]; F[2] = -F[2];   /* panel centre direction */
+
+        const float aim[3] = {0, 0, -1};
+        float D[3];
+        quatRotate(c.Pose.orientation, aim, D);
+        const float O[3] = {c.Pose.position.x - cyl.position.x,
+                            c.Pose.position.y - cyl.position.y,
+                            c.Pose.position.z - cyl.position.z};
+
+        /* Drop the axis component of both, then it is a 2D ray/circle problem. */
+        const float oy = O[0] * Y[0] + O[1] * Y[1] + O[2] * Y[2];
+        const float dy = D[0] * Y[0] + D[1] * Y[1] + D[2] * Y[2];
+        const float ox = O[0] * X[0] + O[1] * X[1] + O[2] * X[2];
+        const float oz = O[0] * F[0] + O[1] * F[1] + O[2] * F[2];
+        const float dx = D[0] * X[0] + D[1] * X[1] + D[2] * X[2];
+        const float dz = D[0] * F[0] + D[1] * F[1] + D[2] * F[2];
+
+        const float a = dx * dx + dz * dz;
+        if (a < 1e-8f) {
+            return false;   /* ray runs along the axis */
+        }
+        const float b = 2.0f * (ox * dx + oz * dz);
+        const float cq = ox * ox + oz * oz - radius * radius;
+        const float disc = b * b - 4.0f * a * cq;
+        if (disc < 0.0f) {
+            return false;
+        }
+        const float t = (-b + sqrtf(disc)) / (2.0f * a);   /* forward hit */
+        if (t <= 0.0f) {
+            return false;
+        }
+
+        const float hx = ox + t * dx, hz = oz + t * dz;
+        const float hy = oy + t * dy;
+        if (hz <= 0.0f) {
+            return false;   /* behind the viewer, on the far side of the cylinder */
+        }
+        u = 0.5f + atan2f(hx, hz) / angle;
+        v = 0.5f + hy / height;
+    } else {
+
     const float fwd[3] = {0, 0, -1}, zAxis[3] = {0, 0, 1}, xAxis[3] = {1, 0, 0}, yAxis[3] = {0, 1, 0};
     float D[3], N[3], X[3], Y[3];
     quatRotate(c.Pose.orientation, fwd, D);
@@ -105,8 +159,9 @@ static bool aimRayToScreen(float* px, float* py)
         return false;
     }
     float P[3] = {O[0] + t * D[0] - C[0], O[1] + t * D[1] - C[1], O[2] + t * D[2] - C[2]};
-    float u = (P[0] * X[0] + P[1] * X[1] + P[2] * X[2]) / sx + 0.5f;
-    float v = (P[0] * Y[0] + P[1] * Y[1] + P[2] * Y[2]) / sy + 0.5f;
+    u = (P[0] * X[0] + P[1] * X[1] + P[2] * X[2]) / sx + 0.5f;
+    v = (P[0] * Y[0] + P[1] * Y[1] + P[2] * Y[2]) / sy + 0.5f;
+    }
     /* a little slack outside the screen keeps the cursor reachable at the edges */
     if (u < -0.05f || u > 1.05f || v < -0.05f || v > 1.05f) {
         return false;
