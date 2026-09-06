@@ -90,11 +90,11 @@ five drivers by generating them, is disabled on Android: with 91 cars it never c
 wrote another ~76 driver directories on every launch and startup grew to over six minutes. The
 robots ship their own driver definitions, so the cost is a few less-populated categories.
 
-The in-game download manager is **not** available in this port, and the main menu entry for it
-is removed on Android: libcurl here is built without a TLS backend (`cmake/deps.cmake` sets
-`CURL_ENABLE_SSL OFF`) and every asset URL is https, so it could never fetch anything. Pulling
-3.4 GB through a headset would be the slow way round in any case. Building curl against mbedTLS
-would bring the menu back if you want it.
+The in-game download manager works too: curl is built against mbedTLS, and because the device
+has no trust store curl can read, the CA bundle from https://curl.se/ca/ ships as
+`config/cacert.pem` and `transfer::start` points every handle at it. Refresh it the way you would
+any CA bundle - it is just a file in the data tree. Pulling 3.4 GB through a headset is still the
+slow way round, so `fetch_assets.py` remains the better route for a full install.
 
 ## Run
 
