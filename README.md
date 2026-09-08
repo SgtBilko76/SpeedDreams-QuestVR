@@ -1,5 +1,7 @@
 # Speed Dreams VR — Speed Dreams 2.4 on Meta Quest (standalone, OpenXR)
 
+Long press Y recenters the view.
+
 A native Android port of [Speed Dreams](https://www.speed-dreams.net/) 2.4 for Meta Quest 2 / 3
 headsets. The game's fixed-function OpenGL renderer (`ssggraph`) runs on top of
 [gl4es](https://github.com/ptitSeb/gl4es); stereo rendering, head tracking and controller input go
