@@ -6,8 +6,6 @@
 # Speed Dreams VR — Speed Dreams 2.4 on Meta Quest (standalone, OpenXR)
 https://www.speed-dreams.org/
 
-Long press Y recenters the view.
-
 | Input | Menus | Race |
 |---|---|---|
 | Right hand pointer | move the cursor | — |
