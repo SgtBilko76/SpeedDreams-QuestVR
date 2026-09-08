@@ -7,8 +7,8 @@
  *   AXIS1  right index trigger            (throttle 0..1)
  *   AXIS4  left index trigger             (brake / clutch 0..1)
  *   AXIS5/6 right thumbstick              (menu cursor only)
- *   BTN1 right grip (up shift), BTN2 left grip (down shift), BTN4 right thumb
- *   click (reverse), BTN5 left thumb click (neutral), BTN6 X (ASR)
+ *   BTN1 right grip (up shift), BTN2 left grip (down shift), BTN3 A (ABS),
+ *   BTN5 left thumb click (reverse gear), BTN6 X (ASR)
  *   Y: short press = next camera (F2), hold 1 s = recenter the seated pose
  *
  * Menus: the right-hand aim ray drives the mouse cursor on the floating screen,
@@ -210,7 +210,7 @@ void VrInputUpdate(void)
     if (R.Buttons & xrButton_GripTrigger) b |= 1 << 0;   /* BTN1 = up shift   (right grip) */
     if (L.Buttons & xrButton_GripTrigger) b |= 1 << 1;   /* BTN2 = down shift (left grip)  */
     if (R.Buttons & xrButton_A)           b |= 1 << 2;   /* BTN3 = ABS toggle (A) */
-    if (L.Buttons & xrButton_LThumb)      b |= 1 << 4;   /* BTN5 = neutral */
+    if (L.Buttons & xrButton_LThumb)      b |= 1 << 4;   /* BTN5 = reverse gear */
     if (L.Buttons & xrButton_X)           b |= 1 << 5;   /* BTN6 = ASR toggle */
     sButtons = b;
 
