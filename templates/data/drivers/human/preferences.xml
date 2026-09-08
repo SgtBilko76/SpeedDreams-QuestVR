@@ -42,8 +42,8 @@
              racing speed without making the car sluggish in the pits.
              The stick already has an 8% dead zone in the VR input layer, so
              this one stays at zero rather than stacking a second one. -->
-        <attnum name="steer sensitivity" val="0.6"/>
-        <attnum name="steer speed sensitivity" val="0.7"/>
+        <attnum name="steer sensitivity" val="0.45"/>
+        <attnum name="steer speed sensitivity" val="1.0"/>
         <attnum name="steer dead zone" val="0.0"/>
         <!-- Left thumbstick X, -1 (full left) .. +1 (full right); the sign of
              "power" picks the polarity of each half. -->
@@ -100,8 +100,15 @@
     <attstr name="down shift" val="BTN2-0"/>
     <attstr name="ASR cmd" val="BTN6-0"/>
     <attstr name="ABS cmd" val="BTN3-0"/>
-    <attstr name="reverse gear" val="BTN4-0"/>
-    <attstr name="neutral gear" val="BTN5-0"/>
+    <!-- Cleared here, not just in the driver section above: an empty value
+         is not an unbinding. GfParmGetStr returns the default it was given
+         whenever the stored string is empty, so a cleared "neutral gear"
+         over there falls back to whatever this section says. Left as
+         BTN5-0 it put neutral on the same button as reverse, and the gear
+         selection loop runs neutral second, so the left stick click
+         selected neutral and the car would never go backwards. -->
+    <attstr name="reverse gear" val="BTN5-0"/>
+    <attstr name="neutral gear" val=""/>
     <attstr name="1st gear" val=""/>
     <attstr name="2nd gear" val=""/>
     <attstr name="3rd gear" val=""/>
