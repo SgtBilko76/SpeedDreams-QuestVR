@@ -7,6 +7,13 @@ plugins {
 // honours only for a debuggable app.
 def sdvrAsan = project.hasProperty('sdvrAsan') && project.property('sdvrAsan').toString().toBoolean()
 
+// Self-contained build:  tools\make_release.ps1
+// Packs the game data into the APK as assets/gamedata.zip, which the activity
+// unpacks to /sdcard/SpeedDreamsVR on first run. Off by default: the zip is 175 MB
+// and rebuilding it on every dev build would be a waste. tools/make_release.ps1
+// writes it to build/bundled-assets and sets this.
+def sdvrBundleData = project.hasProperty('sdvrBundleData') && project.property('sdvrBundleData').toString().toBoolean()
+
 android {
     namespace 'com.speeddreamsvr'
     compileSdk 34
@@ -46,7 +53,17 @@ android {
                 jniLibs.srcDirs += 'src/asan/jniLibs'
                 resources.srcDirs += 'src/asan/resources'
             }
+            if (sdvrBundleData) {
+                assets.srcDirs += "${buildDir}/bundled-assets"
+            }
         }
+    }
+
+    androidResources {
+        // Both are already-compressed archives. Deflating them again gains nothing,
+        // costs minutes of build time on a 175 MB zip, and would make the game data
+        // stream out slower than it needs to.
+        noCompress 'zip', 'psa'
     }
 
     externalNativeBuild {
