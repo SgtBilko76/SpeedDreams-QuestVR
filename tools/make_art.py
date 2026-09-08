@@ -27,8 +27,10 @@ SOURCE = os.path.join(ROOT, "art", "logo.png")
 MIPMAPS = [("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)]
 RES = os.path.join(ROOT, "android", "app", "src", "main", "res")
 
-# The game's startup splash, at the size of the one it replaces.
-SPLASH = os.path.join(ROOT, "stage", "SpeedDreamsVR", "data", "data", "img", "splash.jpg")
+# The game's startup splash, at the size of the one it replaces. It goes into the
+# overlay rather than straight into stage/, which stage_data.py rewrites from the
+# game data every time it runs.
+SPLASH = os.path.join(ROOT, "templates", "data", "data", "img", "splash.jpg")
 SPLASH_SIZE = (1920, 1200)
 
 TOP = (24, 25, 28)
@@ -91,11 +93,10 @@ def main():
         compose(logo, (px, px), 0.92, cap=1e9).save(path)
         print("icon:   %s %dx%d" % (path, px, px))
 
-    if os.path.isdir(os.path.dirname(SPLASH)):
-        compose(logo, SPLASH_SIZE, 0.45).save(SPLASH, quality=92)
-        print("splash: %s %dx%d" % ((SPLASH,) + SPLASH_SIZE))
-    else:
-        print("no staged data, skipping the splash", file=sys.stderr)
+    os.makedirs(os.path.dirname(SPLASH), exist_ok=True)
+    compose(logo, SPLASH_SIZE, 0.45).save(SPLASH, quality=92)
+    print("splash: %s %dx%d" % ((SPLASH,) + SPLASH_SIZE))
+    print("run tools/stage_data.py to carry it into stage/")
 
     return 0
 

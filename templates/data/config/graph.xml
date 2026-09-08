@@ -23,24 +23,31 @@
     	<attnum name="skid length" val="300"/>
     	<attnum name="skid interval" val="0.05"/>
 
-      <!-- VR: view distance. It scales the race camera's far clip plane directly
-           (far = 600 * this, with the fog closing in over the second half), so it is
-           the dial between how far you can see and how many meshes are in frame -
-           which is what this port spends its frame on. Measured at Jarama: 50% holds
-           72 fps, 75% sits around 65 and dips to 50 in the busiest views, 100% around
-           57. Options -> Graphics offers 25/50/75 live if you want to trade back. -->
-      <attnum name="fov factor" unit="%" val="75"/>
+      <!-- VR: view distance, as a scale on the race camera's far clip plane
+           (far = 600 * this, fog closing in over the second half). It is the dial
+           between how far you can see and how many meshes are in frame, which is
+           what this port spends its frame on: measured at Jarama, 50% holds 72 fps,
+           75% sits around 65 and dips to 50 in the busiest views, 100% around 57.
+
+           It does nothing at all while the sky dome below is on, though - see there.
+           Options -> Graphics offers 25/50/75 live. -->
+      <attnum name="fov factor" unit="%" val="50"/>
     	<attnum name="LOD Factor" val="1"/>
-      <!-- VR: the sky dome is off, and that is a performance setting rather than a
-           cosmetic one. With a dome the game pins the far clip plane at
-           2.1 * distance (see cGrScreen::initCams), which is 25 km here: nothing is
-           ever distance-culled and the whole track is submitted every frame, twice,
-           once per eye. With no dome the far plane goes back to 600 * "fov factor"
-           and fog closes in with it, which is what the port needs - drawing this
-           renderer's meshes costs about ten microseconds each on a Quest, so the
-           frame rate is set by how many of them are in view. The static background
-           is drawn instead of the dome. -->
-      <attnum name="sky dome distance" val="0"/>
+      <!-- VR: the sky dome, at 12000 - the lowest value the game treats as "on".
+           This is a performance setting as much as a cosmetic one, and it overrides
+           the one above: with a dome the game pins the far clip plane at
+           2.1 * distance + 1 (cGrScreen::initCams), so 25.2 km here. Nothing is
+           distance-culled at that range, the whole track is submitted every frame,
+           twice, once per eye, and "fov factor" no longer reaches the far plane at
+           all. Set this back to 0 and the far plane returns to 600 * "fov factor"
+           with the fog closing in behind it, and the static background is drawn in
+           place of the dome - which is the cheaper way round, by about a fifth of
+           the frame rate on a busy track.
+
+           It is on because it looks better and, with the mesh merging this port
+           does, there is enough headroom to pay for it. Turn it off first if a
+           track will not hold frame rate. -->
+      <attnum name="sky dome distance" val="12000"/>
     	<attstr name="dynamic sky dome" val="disabled"/>
       <!-- VR: rain particles are many small draws, the one thing to avoid here. -->
       <attnum name="precipitation density" unit="%" val="0"/>
@@ -55,9 +62,9 @@
     	<attnum name="arc ratio" val="1.0"/>
     	<attstr name="monitor type" val="none"/>
 		<attstr name="shadow type" val="light shadowmap"/>
-		<attnum name="texture shadow size" val="1024"/>
-		<attstr name="shadow quality" val="little"/>
-		<attstr name="shaders" val="little"/>
+		<attnum name="texture shadow size" val="2048"/>
+		<attstr name="shadow quality" val="full"/>
+		<attstr name="shaders" val="full"/>
 		<attstr name="texture environment" val="full"/>
 		<attnum name="environment size" val="256"/>
   	</section>
@@ -122,8 +129,10 @@
       <attnum name="camera head list" val="1"/>
     </section>
     <section name="0">
-      <attnum name="camera" val="0"/>
-      <attnum name="camera head list" val="1"/>
+      <!-- Camera 2 of head list 0: the cockpit view, which is the one worth
+           starting in when you are sitting in the car rather than watching it. -->
+      <attnum name="camera" val="2"/>
+      <attnum name="camera head list" val="0"/>
       <!-- VR: the mirror draws the whole scene a second time per eye, and this
            port is bound by draw calls - it roughly halves the frame rate. Off by
            default; the right stick click turns it on when you want a look. -->
