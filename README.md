@@ -1,3 +1,6 @@
+<img width="800" height="450" alt="speed-dreams-20-splash" src="https://github.com/user-attachments/assets/a8886516-eb6b-4012-8361-5c5cb174e9e9" />
+
+
 <img width="1024" height="768" alt="collage" src="https://github.com/user-attachments/assets/c3bc830d-822a-415c-9c5e-75ac61d7a95c" />
 
 # Speed Dreams VR — Speed Dreams 2.4 on Meta Quest (standalone, OpenXR)
