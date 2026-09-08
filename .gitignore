@@ -7,3 +7,4 @@ stage/
 build*.log
 third_party/
 lib/
+dist/
