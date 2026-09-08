@@ -1,172 +1,149 @@
-# Assemble a release: the APK, the base game data, and an installer for both.
+# Build a self-contained release APK: the app with the game data inside it.
 #
-# The base data is the 230 MB that Speed Dreams itself ships - one track, one
-# car, and everything that is not a track or a car: menus, fonts, sounds, the
-# drivers, the car categories. That is a complete, working game. The other 74
-# tracks and 90 cars are published separately and the player fetches the ones
-# they want from Options -> Downloads inside the headset.
+# The data is packed as assets/gamedata.zip and unpacked to /sdcard/SpeedDreamsVR
+# on first run (SDVRActivity.unpackGameData). It cannot simply live inside the
+# app: the game reaches its data through ordinary paths, and keeping it outside
+# also means it survives reinstalling, and that cars and tracks fetched later by
+# the in-game download manager land in the same tree as the ones that shipped.
 #
-# tools\fetch_assets.py puts those downloads into stage\ as well, so anything
-# with a .revision file in it came from there and is skipped here. Pass
-# -WithAssets to package the lot instead, which makes it about 5.6 GB - too big
-# to be convenient, and far too big for an APK, which is a zip that Android's
-# package parser reads without zip64.
+# What goes in is the 230 MB Speed Dreams itself ships - one track, one car, and
+# everything that is not a track or a car: menus, fonts, sounds, drivers, car
+# categories. That is a complete, working game. The other 74 tracks and 90 cars
+# are published separately and the player fetches the ones they want from
+# Options -> Downloads in the headset.
 #
-#   tools\make_release.ps1                -> dist\SpeedDreamsVR-<version>.zip
-#   tools\make_release.ps1 -NoZip         -> just the folder
-#   tools\make_release.ps1 -WithAssets    -> every published car and track too
+# tools\fetch_assets.py stages those downloads too, so anything with a .revision
+# file in it came from there and is left out. -WithAssets packs the lot instead,
+# which does not fit: an APK is a zip that Android's package parser reads without
+# zip64, so it tops out near 4 GB and the full set is 5.6 GB. It exists for
+# packing some of them by hand, not all.
 #
-# Run tools\stage_data.py first; this packages what is in stage\.
+#   tools\make_release.ps1              -> dist\SpeedDreamsVR-<version>.apk
+#   tools\make_release.ps1 -SkipBuild   -> repack without recompiling
+#
+# Run tools\stage_data.py first; this packs what is in stage\.
 
 param(
-    [switch]$NoZip,
+    [switch]$SkipBuild,
     [switch]$WithAssets
 )
 
 $ErrorActionPreference = "Stop"
-$root  = Split-Path -Parent $PSScriptRoot
-$stage = Join-Path $root "stage\SpeedDreamsVR"
-$apk   = Join-Path $root "android\app\build\outputs\apk\release\app-release.apk"
+$root    = Split-Path -Parent $PSScriptRoot
+$stage   = Join-Path $root "stage\SpeedDreamsVR"
+$appDir  = Join-Path $root "android\app"
+$zipDir  = Join-Path $appDir "build\bundled-assets"
+$zipPath = Join-Path $zipDir "gamedata.zip"
+$apk     = Join-Path $appDir "build\outputs\apk\release\app-release.apk"
 
-if (-not (Test-Path $apk))   { throw "no release APK: run android\gradlew.bat assembleRelease" }
 if (-not (Test-Path $stage)) { throw "stage dir missing: run python tools\stage_data.py" }
 
-# The version the APK actually carries, rather than one written down twice.
-$gradle  = Get-Content (Join-Path $root "android\app\build.gradle") -Raw
+$gradle  = Get-Content (Join-Path $appDir "build.gradle") -Raw
 $version = ([regex]::Match($gradle, "versionName\s+'([^']+)'")).Groups[1].Value
 if (-not $version) { throw "could not read versionName from android\app\build.gradle" }
 
 $name = "SpeedDreamsVR-$version"
-$out  = Join-Path $root "dist\$name"
+Write-Host "Building $name"
 
-Write-Host "Packaging $name"
-if (Test-Path $out) { Remove-Item -Recurse -Force $out }
-New-Item -ItemType Directory -Force -Path $out | Out-Null
-
-Copy-Item $apk (Join-Path $out "$name.apk")
-Write-Host ("  apk    {0:N1} MB" -f ((Get-Item $apk).Length / 1MB))
-
-# --- the data ----------------------------------------------------------------
-$dataOut = Join-Path $out "SpeedDreamsVR"
-$stageLen = $stage.Length
-
-# Directories holding a downloaded asset, and so everything under them.
+# --- the data zip ------------------------------------------------------------
+# Written straight from stage\, skipping the downloadable assets, so nothing is
+# copied to a staging folder first.
 $skip = @()
 if (-not $WithAssets) {
     $skip = Get-ChildItem -Recurse -Force -Filter ".revision" -File $stage |
             ForEach-Object { $_.DirectoryName }
 }
-Write-Host ("  data   copying{0}..." -f $(if ($skip.Count) { ", skipping $($skip.Count) downloadable assets" } else { "" }))
+Write-Host ("  data   packing{0}..." -f $(if ($skip.Count) { ", skipping $($skip.Count) downloadable assets" } else { "" }))
 
-$copied = 0
-foreach ($file in Get-ChildItem -Recurse -File $stage) {
-    $dir = $file.DirectoryName
-    $isAsset = $false
-    foreach ($s in $skip) {
-        if ($dir -eq $s -or $dir.StartsWith($s + [IO.Path]::DirectorySeparatorChar)) { $isAsset = $true; break }
+New-Item -ItemType Directory -Force -Path $zipDir | Out-Null
+if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+$stageLen = $stage.Length
+$archive = [System.IO.Compression.ZipFile]::Open($zipPath, 'Create')
+try {
+    $files = 0
+    foreach ($file in Get-ChildItem -Recurse -File $stage) {
+        $dir = $file.DirectoryName
+        $isAsset = $false
+        foreach ($s in $skip) {
+            if ($dir -eq $s -or $dir.StartsWith($s + [IO.Path]::DirectorySeparatorChar)) { $isAsset = $true; break }
+        }
+        if ($isAsset) { continue }
+
+        # Zip entries use forward slashes and are relative to the data dir.
+        $entry = $file.FullName.Substring($stageLen).TrimStart('\').Replace('\', '/')
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+            $archive, $file.FullName, $entry, 'Optimal') | Out-Null
+        $files++
     }
-    if ($isAsset) { continue }
-
-    $dest = Join-Path $dataOut $file.FullName.Substring($stageLen).TrimStart('\')
-    $destDir = Split-Path -Parent $dest
-    if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Force -Path $destDir | Out-Null }
-    Copy-Item $file.FullName $dest
-    $copied++
+} finally {
+    $archive.Dispose()
 }
-$bytes = (Get-ChildItem -Recurse -File $dataOut | Measure-Object -Property Length -Sum).Sum
-Write-Host ("  data   {0:N1} MB in {1:N0} files" -f ($bytes / 1MB), $copied)
+Write-Host ("  data   {0:N1} MB, {1:N0} files -> {2}" -f ((Get-Item $zipPath).Length / 1MB), $files, "gamedata.zip")
 
-# --- the installer -----------------------------------------------------------
-# A .cmd rather than a .ps1: it runs on a double click without anyone having to
-# think about the execution policy.
-$install = @"
-@echo off
-setlocal
-cd /d "%~dp0"
+# --- the APK -----------------------------------------------------------------
+if (-not $SkipBuild) {
+    Write-Host "  apk    building..."
+    Push-Location (Join-Path $root "android")
+    try {
+        # Gradle writes warnings to stderr, and under ErrorActionPreference=Stop
+        # PowerShell turns any native stderr line into a terminating error - so a
+        # harmless SDK version notice would read as a failed build. The exit code
+        # is the thing that actually says.
+        $prev = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            & .\gradlew.bat assembleRelease -PsdvrBundleData=true 2>&1 |
+                ForEach-Object { Write-Host "         $_" }
+        } finally {
+            $ErrorActionPreference = $prev
+        }
+        if ($LASTEXITCODE -ne 0) { throw "gradle failed ($LASTEXITCODE)" }
+    } finally {
+        Pop-Location
+    }
+}
+if (-not (Test-Path $apk)) { throw "no APK at $apk" }
 
-echo Speed Dreams VR $version
-echo.
-echo Connect the headset, allow USB debugging on it, and press a key.
-pause >nul
+$dist = Join-Path $root "dist"
+New-Item -ItemType Directory -Force -Path $dist | Out-Null
+$out = Join-Path $dist "$name.apk"
+Copy-Item $apk $out -Force
 
-where adb >nul 2>&1
-if errorlevel 1 (
-  echo.
-  echo adb is not on the PATH. Install the Android platform-tools and try again:
-  echo   https://developer.android.com/tools/releases/platform-tools
-  echo.
-  pause
-  exit /b 1
-)
+Write-Host ("  ->     {0} ({1:N1} MB)" -f $out, ((Get-Item $out).Length / 1MB))
 
-adb wait-for-device
-if errorlevel 1 goto :fail
-
-echo.
-echo Installing the app...
-adb install -r "$name.apk"
-if errorlevel 1 goto :fail
-
-echo.
-echo Copying the game data (about 230 MB). Safe to run again if it is
-echo interrupted - only what is missing or changed gets sent.
-echo.
-adb shell mkdir -p /sdcard/SpeedDreamsVR
-adb push --sync "SpeedDreamsVR\." /sdcard/SpeedDreamsVR/
-if errorlevel 1 goto :fail
-
-echo.
-echo Done. Speed Dreams VR is under Unknown Sources in the headset's library.
-pause
-exit /b 0
-
-:fail
-echo.
-echo That did not work. Check that the headset is connected and that you
-echo accepted the "Allow USB debugging" prompt inside it, then try again.
-pause
-exit /b 1
-"@
-Set-Content -Path (Join-Path $out "install.cmd") -Value $install -Encoding ASCII
-
-# --- and a note for whoever is holding the folder ----------------------------
+# --- a note to go beside it --------------------------------------------------
 $readme = @"
 Speed Dreams VR $version
 ========================
 
 Speed Dreams 2.4 as a standalone Meta Quest application: stereo rendering
-through OpenXR, a curved menu panel, and the full game.
+through OpenXR, a curved menu panel, and the full game in one APK.
 
-Quest 2, Quest 3, Quest Pro. About 500 MB free on the headset to start with.
+Quest 2, Quest 3, Quest Pro. About 500 MB free on the headset.
 
 
 Installing
 ----------
 
-Windows, with the headset plugged in and developer mode on:
+Sideload it, however you normally do - SideQuest, or:
 
-    double-click install.cmd
-
-It needs adb, from the Android platform-tools:
-https://developer.android.com/tools/releases/platform-tools
-
-By hand, or on macOS and Linux:
-
-    adb install -r "$name.apk"
-    adb shell mkdir -p /sdcard/SpeedDreamsVR
-    adb push --sync SpeedDreamsVR/. /sdcard/SpeedDreamsVR/
+    adb install -r $name.apk
 
 The game appears in the headset's library under Unknown Sources.
 
-The data goes on the sdcard rather than inside the app, so it survives
-reinstalling and updating the APK. Only the APK needs replacing for an update
-unless the notes say otherwise.
+The first launch takes an extra half minute or so: the game data is unpacked
+out of the APK to /sdcard/SpeedDreamsVR, where it stays. Later versions reuse
+that directory, so an update is just the new APK.
 
 
 More cars and tracks
 --------------------
 
-This ships with what Speed Dreams itself ships: one track and one car, which is
+This carries what Speed Dreams itself ships: one track and one car, which is
 enough to race. Another 74 tracks and 90 cars are published separately - get
 them from inside the headset, in Options -> Downloads, over wifi. Pick the ones
 you want; the whole set is about 5.4 GB.
@@ -191,7 +168,8 @@ Settings
 
 /sdcard/SpeedDreamsVR/vr.cfg holds the things worth trying without a new build:
 eye buffer scale, refresh rate, antialiasing, where the mirror sits, and the
-steering curve. It is commented; edit it and restart the app.
+steering curve. It is commented; edit it and restart the app. Updates leave it
+alone once it is there.
 
 Everything else is in the game's own Options menu. If a track will not hold
 frame rate, turn the sky dome off first - with it on, nothing is distance
@@ -204,14 +182,4 @@ Known limits
 - Practice and qualifying run one car at a time. That is how the game works,
   not a fault of the port: use Quick Race or a championship to race opponents.
 "@
-Set-Content -Path (Join-Path $out "README.txt") -Value $readme -Encoding UTF8
-
-Write-Host "  ->     $out"
-
-if (-not $NoZip) {
-    $zip = "$out.zip"
-    if (Test-Path $zip) { Remove-Item -Force $zip }
-    Write-Host "  zip    compressing..."
-    Compress-Archive -Path (Join-Path $out "*") -DestinationPath $zip -CompressionLevel Optimal
-    Write-Host ("  ->     {0} ({1:N1} MB)" -f $zip, ((Get-Item $zip).Length / 1MB))
-}
+Set-Content -Path (Join-Path $dist "README.txt") -Value $readme -Encoding UTF8
