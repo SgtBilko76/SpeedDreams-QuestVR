@@ -1464,9 +1464,37 @@ void TBXR_InitialiseResolution()
 
 	free(viewportConfigurationTypes);
 
-	//Shortcut to width and height
-	gAppState.Width = gAppState.ViewConfigurationView[0].recommendedImageRectWidth * SS_MULTIPLIER;
-	gAppState.Height = gAppState.ViewConfigurationView[0].recommendedImageRectHeight * SS_MULTIPLIER;
+	/* Eye buffer size.
+	 *
+	 * SS_MULTIPLIER scales the runtime's *recommended* rectangle, which is a
+	 * good deal smaller than what the panels can show - the runtime picks it to
+	 * leave headroom, not to look its best. So 1.0 is not "full resolution",
+	 * it is "what the runtime suggests", and asking for more is the only way to
+	 * get a sharper image. Hence the numbers in the log: without them there is
+	 * no way to tell what a given scale is actually asking for.
+	 *
+	 * Clamped to the maximum the runtime will accept. Beyond that the swapchain
+	 * is simply refused, and the app comes up with no image at all rather than
+	 * a slightly-too-large one. */
+	const XrViewConfigurationView *view = &gAppState.ViewConfigurationView[0];
+	uint32_t width  = (uint32_t)(view->recommendedImageRectWidth  * SS_MULTIPLIER);
+	uint32_t height = (uint32_t)(view->recommendedImageRectHeight * SS_MULTIPLIER);
+
+	if (view->maxImageRectWidth && width > view->maxImageRectWidth)
+		width = view->maxImageRectWidth;
+	if (view->maxImageRectHeight && height > view->maxImageRectHeight)
+		height = view->maxImageRectHeight;
+
+	gAppState.Width = width;
+	gAppState.Height = height;
+
+	/* ALOGE, not ALOGI: TBXR_Common.h defines the error and verbose macros and
+	 * not the info one, and verbose is compiled out of a release build - which
+	 * is exactly the build whose eye buffer size anyone wants to know. */
+	ALOGE("Eye buffer %ux%u at scale %.2f (runtime recommends %ux%u, allows up to %ux%u)",
+	      width, height, SS_MULTIPLIER,
+	      view->recommendedImageRectWidth, view->recommendedImageRectHeight,
+	      view->maxImageRectWidth, view->maxImageRectHeight);
 }
 
 void TBXR_EnterVR( ) {
