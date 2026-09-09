@@ -208,7 +208,7 @@
          rmCreateRaceType), and a <Type>Combo for the sub-types. Upstream ships
          netserver.xml, netclient.xml and netwatcher.xml - all of type "Network" -
          but never added these two sections, so online racing has no way in from
-         the menus and can only be reached with --startrace netclient. -->
+         the menus and can only be reached from the startrace command line. -->
     <section name="NetworkButton">
       <attstr name="type" val="text button"/>
       <attstr name="show box" val="no"/>
