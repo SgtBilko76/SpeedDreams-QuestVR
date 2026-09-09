@@ -1,4 +1,25 @@
+<img width="800" height="450" alt="speed-dreams-20-splash" src="https://github.com/user-attachments/assets/a8886516-eb6b-4012-8361-5c5cb174e9e9" />
+
+
+<img width="1024" height="768" alt="collage" src="https://github.com/user-attachments/assets/c3bc830d-822a-415c-9c5e-75ac61d7a95c" />
+
 # Speed Dreams VR — Speed Dreams 2.4 on Meta Quest (standalone, OpenXR)
+https://www.speed-dreams.org/
+
+| Input | Menus | Race |
+|---|---|---|
+| Right hand pointer | move the cursor | — |
+| Right trigger | select | throttle |
+| Left trigger | back | brake |
+| Left thumbstick | up/down/left/right in lists | steering |
+| A | Enter | ABS on/off (and Enter, which starts a race) |
+| B / left menu button | back (same as the left trigger) | pause menu |
+| X | — | ASR on/off |
+| Y | recenter the menu screen (hold 1 s) | next camera; hold 1 s to recenter the seated view |
+| Right thumbstick click | — | rear-view mirror on/off |
+| Left thumbstick click | — | reverse gear |
+| Right grip | — | up shift |
+| Left grip | — | down shift |
 
 A native Android port of [Speed Dreams](https://www.speed-dreams.net/) 2.4 for Meta Quest 2 / 3
 headsets. The game's fixed-function OpenGL renderer (`ssggraph`) runs on top of
@@ -112,20 +133,7 @@ Menus are on a floating screen in front of you. Point at it with the right hand 
 trigger to click; the left thumbstick moves through lists. The race is rendered in stereo with head
 tracking.
 
-| Input | Menus | Race |
-|---|---|---|
-| Right hand pointer | move the cursor | — |
-| Right trigger | select | throttle |
-| Left trigger | back | brake |
-| Left thumbstick | up/down/left/right in lists | steering |
-| A | Enter | ABS on/off (and Enter, which starts a race) |
-| B / left menu button | back (same as the left trigger) | pause menu |
-| X | — | ASR on/off |
-| Y | recenter the menu screen (hold 1 s) | next camera; hold 1 s to recenter the seated view |
-| Right thumbstick click | — | rear-view mirror on/off |
-| Left thumbstick click | — | reverse gear |
-| Right grip | — | up shift |
-| Left grip | — | down shift |
+
 
 The menu screen is anchored in front of you the first time it is shown, and stays put in the
 room after that so you can look around it. Walk somewhere else during a long session and it stays
