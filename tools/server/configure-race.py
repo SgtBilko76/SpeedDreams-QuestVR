@@ -9,10 +9,10 @@ and the race engine refuses to start at all:
     Error   No competitor in this race : cancelled.
 
 This fills the grid from the robots that are actually installed, reading their
-names out of the per-module driver XMLs in the user directory. Names are used
-rather than indices because a raceman Drivers entry is matched on "driver name"
-plus "module" - an "idx" entry is rejected with `Attribute "driver name"
-missing`.
+names out of the per-module driver XMLs in the user directory. Each entry gets
+both a "driver name" and an "idx": the race engine matches on the name and
+rejects an entry without one, while the networking code keys on the index, and
+two drivers from the same module are indistinguishable without it.
 
     ./configure-race.py --track jarama --laps 10 --bots 8
 
@@ -36,7 +36,7 @@ def userdir():
 
 
 def available_bots(root):
-    """[(module, driver name)] for every installed robot driver."""
+    """[(module, driver name, index)] for every installed robot driver."""
     found = []
     for module in ROBOTS:
         path = os.path.join(root, "drivers", module, module + ".xml")
@@ -51,9 +51,16 @@ def available_bots(root):
             if section.get("name") != "index":
                 continue
             for driver in section.findall("section"):
+                # The section name is the driver's index within its module, and
+                # the networking code keys on that. Without it two drivers from
+                # the same module are indistinguishable and collapse into one.
+                try:
+                    idx = int(driver.get("name"))
+                except (TypeError, ValueError):
+                    continue
                 for attr in driver.findall("attstr"):
                     if attr.get("name") == "name" and attr.get("val"):
-                        found.append((module, attr.get("val")))
+                        found.append((module, attr.get("val"), idx))
     return found
 
 
@@ -81,8 +88,8 @@ def main():
 
     bots = available_bots(root)
     if args.list:
-        for module, name in bots:
-            print("%-10s %s" % (module, name))
+        for module, name, idx in bots:
+            print("%-10s idx %-3d %s" % (module, idx, name))
         print("\n%d robot drivers installed" % len(bots))
         return 0
 
@@ -95,12 +102,15 @@ def main():
         print("only %d robots installed, grid will be %d"
               % (len(bots), len(grid)), file=sys.stderr)
 
+    # Both attributes: the race engine matches a driver on "driver name" and
+    # rejects an entry without one, while the networking code keys on "idx".
     rows = "".join(
         '    <section name="%d">\n'
         '      <attstr name="driver name" val="%s"/>\n'
+        '      <attnum name="idx" val="%d"/>\n'
         '      <attstr name="module" val="%s"/>\n'
-        '    </section>\n\n' % (i + 1, xml_escape(name), module)
-        for i, (module, name) in enumerate(grid))
+        '    </section>\n\n' % (i + 1, xml_escape(name), idx, module)
+        for i, (module, name, idx) in enumerate(grid))
 
     drivers = ('  <section name="Drivers">\n'
                '    <attnum name="maximum number" val="40"/>\n'
@@ -128,8 +138,8 @@ def main():
 
     print("track %s (%s), %d laps, %d bots:"
           % (args.track, args.category, args.laps, len(grid)))
-    for module, name in grid:
-        print("  %-10s %s" % (module, name))
+    for module, name, idx in grid:
+        print("  %-10s idx %-3d %s" % (module, idx, name))
     return 0
 
 
