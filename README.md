@@ -3,7 +3,6 @@
 
 <img width="1024" height="768" alt="collage" src="https://github.com/user-attachments/assets/c3bc830d-822a-415c-9c5e-75ac61d7a95c" />
 
-# Speed Dreams VR — Speed Dreams 2.4 on Meta Quest (standalone, OpenXR)
 https://www.speed-dreams.org/
 
 Speed Dreams VR 0.9.2-beta
