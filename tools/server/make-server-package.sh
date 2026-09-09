@@ -132,19 +132,62 @@ if command -v ss >/dev/null && ss -lun 2>/dev/null | grep -q ":$PORT"; then
     exit 1
 fi
 
-# Pick the race before starting: the next track along unless told otherwise.
-if [ -f "$HERE/configure-race.py" ] && command -v python3 >/dev/null; then
-    if [ $# -gt 0 ]; then
-        python3 "$HERE/configure-race.py" --laps "$LAPS" --bots "$BOTS" \
-                --datadir "$SD_DATADIR" "$@"
-    else
-        python3 "$HERE/configure-race.py" --laps "$LAPS" --bots "$BOTS" --rotate \
-                --datadir "$SD_DATADIR"
-    fi
-fi
+# Race after race, each one a fresh process.
+#
+# That is not laziness: the track, physics and robot modules all keep static
+# state across a reload, so a long-lived process looping back to the lobby
+# carries the last race into the next one. Starting again is the only way to be
+# sure - and because the race is configured out here rather than in the binary,
+# each turn of this loop picks up the next track in the rotation.
+#
+# ONCE=1 runs a single race and stops, which is what you want under systemd
+# with Restart=always.
+races=0
+quick=0
 
-cd "$HERE/games"
-exec ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS" --lobbywait "$LOBBYWAIT"
+while true; do
+    # Pick the race: the next track along unless told otherwise.
+    if [ -f "$HERE/configure-race.py" ] && command -v python3 >/dev/null; then
+        if [ $# -gt 0 ]; then
+            python3 "$HERE/configure-race.py" --laps "$LAPS" --bots "$BOTS" \
+                    --datadir "$SD_DATADIR" "$@" || true
+        else
+            python3 "$HERE/configure-race.py" --laps "$LAPS" --bots "$BOTS" --rotate \
+                    --datadir "$SD_DATADIR" || true
+        fi
+    fi
+
+    races=$((races + 1))
+    echo "== race $races =="
+    started=$SECONDS
+
+    cd "$HERE/games"
+    ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS" \
+                     --lobbywait "$LOBBYWAIT" || true
+
+    # Not "[ ... ] && break": under set -e a test that is false is a failed
+    # command at statement level, and the loop would exit on the first race.
+    if [ "${ONCE:-0}" = "1" ]; then
+        break
+    fi
+
+    # A race that was over in seconds did not run: the port was busy, the data
+    # is wrong, something crashed on the way up. Looping on that as fast as the
+    # kernel allows helps nobody.
+    if [ $((SECONDS - started)) -lt 10 ]; then
+        quick=$((quick + 1))
+        if [ "$quick" -ge 5 ]; then
+            echo "five races ended at once; stopping. Look at the log above." >&2
+            exit 1
+        fi
+        sleep 5
+    else
+        quick=0
+    fi
+
+    # Let the socket go before the next one asks for it.
+    sleep 2
+done
 LAUNCH
 chmod +x "$STAGE/speed-dreams-server"
 
@@ -177,10 +220,15 @@ countdown. That gap is what lets a player who has just finished get back in
 before the next race is under way; while a race is running the server turns
 new players away rather than leaving them in a lobby it can no longer serve.
 
-$TRACKS tracks are included and the server rotates through them one race at a
-time. It exits when the race ends - run it under systemd with Restart=always and
-each restart picks up the next track. speed-dreams-server.service is a starting
-point; edit the paths in it.
+$TRACKS tracks are included and the server works through them one race at a
+time, restarting itself in between. Each race is a fresh process on purpose:
+the track, physics and robot modules keep static state across a reload, so
+starting again is the only way to be sure the last race is really gone.
+
+    ONCE=1 ./speed-dreams-server              # one race, then stop
+
+Use that under systemd with Restart=always if you would rather it supervised
+the loop. speed-dreams-server.service is a starting point; edit the paths in it.
 
 Every library the server needs is in lib/bundled, including libGL and the X11
 libraries. It never opens a display, but tgfclient links them anyway and a
