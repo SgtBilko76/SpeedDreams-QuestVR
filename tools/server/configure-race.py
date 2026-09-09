@@ -77,6 +77,11 @@ def main():
     ap.add_argument("--laps", type=int, default=10)
     ap.add_argument("--bots", type=int, default=8,
                     help="grid size; capped at the number installed")
+    ap.add_argument("--modules",
+                    help="comma separated robot modules to draw the grid from, "
+                         "e.g. simplix,usr. Every module on the grid must also have "
+                         "drivers installed on the clients, or its cars cannot be "
+                         "resolved there and simply do not appear")
     ap.add_argument("--list", action="store_true", help="list the robots and exit")
     args = ap.parse_args()
 
@@ -87,6 +92,10 @@ def main():
         return 1
 
     bots = available_bots(root)
+
+    if args.modules:
+        wanted = set(m.strip() for m in args.modules.split(",") if m.strip())
+        bots = [b for b in bots if b[0] in wanted]
     if args.list:
         for module, name, idx in bots:
             print("%-10s idx %-3d %s" % (module, idx, name))
