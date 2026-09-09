@@ -162,13 +162,42 @@ public class SDVRActivity extends Activity implements SurfaceHolder.Callback
     /** The marker written once this build's bundled data is on disk. */
     private File dataStamp()
     {
-        int version = 0;
+        /* Stamp the unpacked tree with the identity of the data that produced
+         * it, taken from the CRC the APK's own zip directory already holds for
+         * assets/gamedata.zip. Reading it costs nothing - the entry is not
+         * decompressed - and it changes exactly when the packed data changes.
+         *
+         * The version code is not enough. Data and code ship in the same APK
+         * and the version rarely moves during development, so a rebuilt data
+         * set was silently never unpacked: the game went on running against
+         * whatever the first install of that version had left behind. A menu
+         * gaining a control is invisible, and the control simply never appears.
+         */
+        long id = 0;
+
         try {
-            version = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            java.util.zip.ZipFile apk = new java.util.zip.ZipFile(getPackageCodePath());
+            ZipEntry entry = apk.getEntry("assets/gamedata.zip");
+
+            if (entry != null) {
+                id = entry.getCrc();
+            }
+            apk.close();
         } catch (Exception e) {
-            // Keep 0: the stamp still works, it just will not tell builds apart.
+            Log.w(TAG, "could not read the data CRC: " + e);
         }
-        return new File(mDataDir, ".data-" + version);
+
+        if (id == 0) {
+            // Data-less build, or the APK would not open: fall back to the
+            // version, which is what this used to key on.
+            try {
+                id = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            } catch (Exception e) {
+                // Keep 0: the stamp still works, it just will not tell builds apart.
+            }
+        }
+
+        return new File(mDataDir, ".data-" + Long.toHexString(id));
     }
 
     /**
