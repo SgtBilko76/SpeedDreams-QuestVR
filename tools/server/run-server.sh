@@ -20,8 +20,9 @@ set -euo pipefail
 
 PREFIX="${PREFIX:-$HOME/sdserver}"
 LAPS="${LAPS:-3}"
-BOTS="${BOTS:-4}"
+BOTS="${BOTS:-3}"
 MINPLAYERS="${MINPLAYERS:-1}"
+LOBBYWAIT="${LOBBYWAIT:-120}"
 
 # Refuse to start if the port is already taken. Otherwise the new server exits
 # immediately - activate() fails, main.cpp skips the event loop - while an older
@@ -56,4 +57,4 @@ else
 fi
 
 cd "$(dirname "$BIN")"
-exec ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS"
+exec ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS" --lobbywait "$LOBBYWAIT"

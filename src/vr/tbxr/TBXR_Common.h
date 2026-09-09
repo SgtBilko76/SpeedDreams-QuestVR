@@ -394,6 +394,7 @@ void TBXR_LeaveVR( );
 void TBXR_GetScreenRes(int *width, int *height);
 void TBXR_InitActions( void );
 void TBXR_Vibrate(int duration, int channel, float intensity );
+void TBXR_SetRumble(int channel, float intensity);
 void TBXR_ProcessHaptics();
 void TBXR_FrameSetup();
 void TBXR_updateProjections();

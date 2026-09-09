@@ -116,8 +116,9 @@ if [ ! -f "$SD_USERDIR/config/raceengine.xml" ] && [ -d "$HERE/userdir-template"
 fi
 
 LAPS="${LAPS:-3}"
-BOTS="${BOTS:-4}"
+BOTS="${BOTS:-3}"
 MINPLAYERS="${MINPLAYERS:-1}"
+LOBBYWAIT="${LOBBYWAIT:-120}"
 
 # Refuse to start if the port is already taken. Otherwise the new server exits
 # immediately - activate() fails, main.cpp skips the event loop - while an older
@@ -143,7 +144,7 @@ if [ -f "$HERE/configure-race.py" ] && command -v python3 >/dev/null; then
 fi
 
 cd "$HERE/games"
-exec ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS"
+exec ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS" --lobbywait "$LOBBYWAIT"
 LAUNCH
 chmod +x "$STAGE/speed-dreams-server"
 
@@ -167,8 +168,14 @@ That is the whole thing. It seeds ~/.speed-dreams-2 on first run, picks the next
 track in the rotation, and hosts one race on UDP 28500. Open that port.
 
     LAPS=5 BOTS=6 ./speed-dreams-server        # a longer race, bigger grid
+    LOBBYWAIT=60 ./speed-dreams-server         # a shorter wait before the start
     ./speed-dreams-server --track jarama       # a specific track
     ./configure-race.py --list                 # what is installed
+
+The lobby stays open for two minutes before every race, and clients see the
+countdown. That gap is what lets a player who has just finished get back in
+before the next race is under way; while a race is running the server turns
+new players away rather than leaving them in a lobby it can no longer serve.
 
 $TRACKS tracks are included and the server rotates through them one race at a
 time. It exits when the race ends - run it under systemd with Restart=always and

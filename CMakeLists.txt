@@ -59,6 +59,7 @@ add_library(sdvr SHARED
     ${VR_DIR}/vr_audio.cpp
     ${VR_DIR}/vr_stereo.cpp
     ${VR_DIR}/vr_config.cpp
+    ${VR_DIR}/vr_haptics.cpp
     ${VR_DIR}/vr_rtti.cpp
     ${VR_DIR}/vr_keyboard.cpp
     ${VR_DIR}/vr_perf.c

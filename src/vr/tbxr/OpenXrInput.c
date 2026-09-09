@@ -524,6 +524,33 @@ void TBXR_Vibrate( int duration, int chan, float intensity )
     }
 }
 
+/* Hold a controller at a level until told otherwise.
+ *
+ * TBXR_Vibrate is built for one-off pulses: it refuses a new request while the
+ * last one is still running, so a level rewritten every frame - which is what
+ * force feedback is - would be dropped for as long as the first pulse lasted.
+ * This writes the channel directly and leaves the duration open-ended;
+ * intensity 0 stops it. */
+void TBXR_SetRumble(int chan, float intensity)
+{
+    for (int i = 0; i < 2; ++i)
+    {
+        if (!((i + 1) & chan))
+            continue;
+
+        if (intensity <= 0.0f)
+        {
+            vibration_channel_duration[i] = 0.0f;
+            vibration_channel_intensity[i] = 0.0f;
+        }
+        else
+        {
+            vibration_channel_duration[i] = -1.0f;   /* until stopped */
+            vibration_channel_intensity[i] = intensity > 1.0f ? 1.0f : intensity;
+        }
+    }
+}
+
 void TBXR_ProcessHaptics() {
     static float lastFrameTime = 0.0f;
     float timestamp = (float)(TBXR_GetTimeInMilliSeconds( ));
