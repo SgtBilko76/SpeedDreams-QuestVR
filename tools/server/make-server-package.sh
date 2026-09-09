@@ -119,6 +119,18 @@ LAPS="${LAPS:-3}"
 BOTS="${BOTS:-4}"
 MINPLAYERS="${MINPLAYERS:-1}"
 
+# Refuse to start if the port is already taken. Otherwise the new server exits
+# immediately - activate() fails, main.cpp skips the event loop - while an older
+# instance carries on serving from whatever race it was already running, which
+# looks exactly like the new settings being ignored.
+PORT="${PORT:-28500}"
+if command -v ss >/dev/null && ss -lun 2>/dev/null | grep -q ":$PORT"; then
+    echo "something is already listening on UDP $PORT." >&2
+    echo "another server is probably still running; stop it first:" >&2
+    echo "    pkill -f 'speed-dreams-2 -x -s netserver'" >&2
+    exit 1
+fi
+
 # Pick the race before starting: the next track along unless told otherwise.
 if [ -f "$HERE/configure-race.py" ] && command -v python3 >/dev/null; then
     if [ $# -gt 0 ]; then
