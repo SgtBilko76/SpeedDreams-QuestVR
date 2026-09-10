@@ -19,8 +19,12 @@
 #    get one when the track generator is run over them during a build, so a
 #    server built from source has them and a headset does not.
 #
-# What is left is the standard circuits, and there are ten of them.
+# What is left is the standard circuits. jarama is in as well, by choice: it is
+# the one track bundled in the headset build, so it is the only one a fresh
+# install can race without downloading anything first. It has no shadow2.png,
+# so the cars do look brighter there than on the rest.
 
+circuit/jarama
 circuit/Imula
 circuit/aalborg
 circuit/brondehach
@@ -65,7 +69,6 @@ circuit/sao-paulo
 #circuit/braga
 #circuit/dijon
 #circuit/hidden-valley
-#circuit/jarama
 #circuit/kurpfalzring
 #circuit/melbourne
 #circuit/racepark
