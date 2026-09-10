@@ -25,7 +25,6 @@
 # so the cars do look brighter there than on the rest.
 
 circuit/jarama
-circuit/Imula
 circuit/aalborg
 circuit/brondehach
 circuit/chemisay
@@ -62,6 +61,13 @@ circuit/sao-paulo
 #speedway/manton
 #speedway/milky-five
 #speedway/newton
+
+# Excluded for how they look rather than what they are missing. Imula renders
+# every car white, offline as well as online, with the textures present and
+# loading without complaint - so it is the track, not the skin, the network or
+# the eye buffer, all of which were suspected first.
+#
+#circuit/Imula
 
 # Installed but no shadow2.png, so the cars look too bright on these:
 #
