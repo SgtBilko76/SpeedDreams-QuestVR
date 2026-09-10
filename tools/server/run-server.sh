@@ -16,7 +16,8 @@ LAPS="${LAPS:-3}"
 BOTS="${BOTS:-3}"
 MINPLAYERS="${MINPLAYERS:-1}"
 LOBBYWAIT="${LOBBYWAIT:-120}"
-MAXRACETIME="${MAXRACETIME:-900}"
+MAXRACETIME="${MAXRACETIME:-0}"
+FINISHWAIT="${FINISHWAIT:-45}"
 
 # Refuse to start if the port is already taken. Otherwise the new server exits
 # immediately - activate() fails, main.cpp skips the event loop - while an older
@@ -72,7 +73,8 @@ while true; do
     cd "$(dirname "$BIN")"
     ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS" \
                      --lobbywait "$LOBBYWAIT" \
-                     --maxracetime "$MAXRACETIME" || true
+                     --maxracetime "$MAXRACETIME" \
+                     --finishdelay "$FINISHWAIT" || true
 
     # Not "[ ... ] && break": under set -e a test that is false is a failed
     # command at statement level, and the loop would exit on the first race.

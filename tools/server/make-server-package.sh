@@ -119,7 +119,8 @@ LAPS="${LAPS:-3}"
 BOTS="${BOTS:-3}"
 MINPLAYERS="${MINPLAYERS:-1}"
 LOBBYWAIT="${LOBBYWAIT:-120}"
-MAXRACETIME="${MAXRACETIME:-900}"
+MAXRACETIME="${MAXRACETIME:-0}"
+FINISHWAIT="${FINISHWAIT:-45}"
 
 # Refuse to start if the port is already taken. Otherwise the new server exits
 # immediately - activate() fails, main.cpp skips the event loop - while an older
@@ -165,7 +166,8 @@ while true; do
     cd "$HERE/games"
     ./speed-dreams-2 -x -s netserver --minplayers "$MINPLAYERS" \
                      --lobbywait "$LOBBYWAIT" \
-                     --maxracetime "$MAXRACETIME" || true
+                     --maxracetime "$MAXRACETIME" \
+                     --finishdelay "$FINISHWAIT" || true
 
     # Not "[ ... ] && break": under set -e a test that is false is a failed
     # command at statement level, and the loop would exit on the first race.
@@ -214,15 +216,15 @@ track in the rotation, and hosts one race on UDP 28500. Open that port.
 
     LAPS=5 BOTS=6 ./speed-dreams-server        # a longer race, bigger grid
     LOBBYWAIT=60 ./speed-dreams-server         # a shorter wait before the start
-    MAXRACETIME=600 ./speed-dreams-server      # cut every race off at ten minutes
+    MAXRACETIME=900 ./speed-dreams-server      # cut every race off at fifteen minutes
     ./speed-dreams-server --track jarama       # a specific track
     ./configure-race.py --list                 # what is installed
 
-No race runs longer than fifteen minutes: it ends wherever the cars have got
-to and the next track starts. Without that ceiling a field that never reaches
-the line - all stuck, or crawling home on a long circuit - would hold the
-session open indefinitely, because the finish delay only starts counting once
-somebody crosses.
+There is no ceiling on race length by default: a race ends when the first car
+completes the distance, plus the seconds in FINISHWAIT for the rest of the
+field. MAXRACETIME=900 puts a fifteen-minute cap back if you want one - it ends
+the race wherever the cars have got to and starts the next track, which is
+insurance against a field that never reaches the line at all.
 
 The lobby stays open for two minutes before every race, and clients see the
 countdown. That gap is what lets a player who has just finished get back in
