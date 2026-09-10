@@ -18,10 +18,10 @@ module are indistinguishable without it.
     ./configure-race.py --laps 3 --bots 4 --rotate # the next track along
     ./configure-race.py --list                     # what is installed
 
---rotate advances through the installed tracks one race at a time, remembering
-where it got to in .track-rotation in the user directory. run-server.sh calls it
-that way before every race, so a server restarted by systemd works its way round
-the calendar instead of sitting on one circuit forever.
+--rotate advances through the installed tracks one race at a time, taking the
+position from the track the race config is already set to. run-server.sh calls
+it that way before every race, so a server restarted by systemd works its way
+round the calendar instead of sitting on one circuit forever.
 """
 
 import argparse
@@ -106,22 +106,50 @@ def available_bots(root):
     return found
 
 
-def next_track(tracks, root):
-    """The track after the one used last time, wrapping round."""
-    state = os.path.join(root, ROTATION_STATE)
-    last = ""
+def current_track(cfg):
+    """The track the race config is set to right now, as (category, name)."""
     try:
-        with open(state) as f:
-            last = f.read().strip()
+        with open(cfg, encoding="utf-8") as f:
+            s = f.read()
     except OSError:
-        pass
+        return None
 
+    name = re.search(r'<section name="1">\s*<attstr name="name" val="([^"]*)"', s)
+    category = re.search(r'<attstr name="category" val="([^"]*)"', s)
+
+    if not name or not category:
+        return None
+
+    return (category.group(1), name.group(1))
+
+
+def next_track(tracks, root, cfg):
+    """The track after the one that is configured now, wrapping round.
+
+    Taken from the race config itself rather than from a state file beside it.
+    The config has to be writable for any of this to work at all, so reading the
+    position back out of it cannot fail separately - whereas a state file can,
+    and does: under systemd with ProtectHome the user directory is read-only
+    unless it is named in ReadWritePaths, and a rotation that cannot record
+    where it got to starts from the first track every single time. Silently,
+    which is the worst of it - the server just looks like it is ignoring
+    --rotate.
+
+    The state file is still written, for anyone who reads it, but nothing
+    depends on it any more.
+    """
     names = ["%s/%s" % (c, t) for c, t in tracks]
+    last = current_track(cfg)
+    last = "%s/%s" % last if last else ""
+
     try:
         i = (names.index(last) + 1) % len(names)
     except ValueError:
         i = 0
 
+    print("rotation: %s -> %s" % (last or "(unknown)", names[i]))
+
+    state = os.path.join(root, ROTATION_STATE)
     try:
         with open(state, "w") as f:
             f.write(names[i] + "\n")
@@ -186,7 +214,7 @@ def main():
         return 1
 
     if args.rotate:
-        category, track = next_track(tracks, root)
+        category, track = next_track(tracks, root, cfg)
     elif args.track:
         match = [(c, t) for c, t in tracks if t == args.track]
         if not match:
