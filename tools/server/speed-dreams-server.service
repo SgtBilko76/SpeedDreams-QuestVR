@@ -1,7 +1,9 @@
-# Speed Dreams dedicated server.
+# Speed Dreams dedicated server, under systemd.
 #
 #   cp speed-dreams-server.service /etc/systemd/system/
 #   systemctl daemon-reload && systemctl enable --now speed-dreams-server
+#
+# Edit ExecStart below to wherever this package was unpacked.
 #
 # One race per process, restarted by systemd. The server exits after the race
 # rather than looping back to the lobby: between races the race engine unloads
@@ -9,7 +11,17 @@
 # state across that, and this port has already produced several bugs in exactly
 # that territory. Restarting is free here and removes the whole class.
 #
-# Open UDP 28500 (the game) and TCP 28600 (the stats endpoint) inbound.
+# ExecStart runs the launcher, not the binary. That matters: the launcher is
+# what picks the next track in the rotation, and what passes the lobby wait and
+# the race time limit. Pointed straight at speed-dreams-2 the server races
+# whatever the config last said, restart after restart, on the same circuit for
+# ever - which is exactly what it looks like when the map never changes.
+#
+# ONCE=1 makes the launcher run a single race and stop, so systemd supervises
+# the loop rather than the script. Drop it and run the launcher directly if you
+# would rather not involve systemd at all; it loops on its own.
+#
+# Open UDP 28500 (the game) inbound.
 
 [Unit]
 Description=Speed Dreams dedicated server
@@ -21,12 +33,20 @@ Type=simple
 User=sdserver
 Group=sdserver
 
-# Where setup-linux-server.sh installed it, and the user directory it seeded.
 Environment=HOME=/home/sdserver
-WorkingDirectory=/home/sdserver/sdserver/games
-ExecStart=/home/sdserver/sdserver/games/speed-dreams-2 -x -s netserver --minplayers 1
+Environment=ONCE=1
 
-# A race ends and the process exits; come straight back up for the next one.
+# Optional: LAPS, BOTS, MINPLAYERS, LOBBYWAIT, MAXRACETIME all read here.
+#Environment=LAPS=3
+#Environment=BOTS=3
+#Environment=LOBBYWAIT=120
+#Environment=MAXRACETIME=900
+
+# Where the package was unpacked.
+WorkingDirectory=/home/sdserver/speed-dreams-server-linux-x86_64
+ExecStart=/home/sdserver/speed-dreams-server-linux-x86_64/speed-dreams-server
+
+# A race ends and the process exits; come straight back up on the next track.
 Restart=always
 RestartSec=2
 

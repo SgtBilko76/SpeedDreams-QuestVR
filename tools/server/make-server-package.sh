@@ -239,6 +239,12 @@ starting again is the only way to be sure the last race is really gone.
 Use that under systemd with Restart=always if you would rather it supervised
 the loop. speed-dreams-server.service is a starting point; edit the paths in it.
 
+Point systemd at ./speed-dreams-server, never at games/speed-dreams-2. The
+launcher is what picks the next track and what passes the lobby wait and the
+race time limit; the binary on its own races whatever the config last said,
+restart after restart, on the same circuit for ever. The server log says
+"Racing at <track>" on the way up, which is the quickest way to tell.
+
 Every library the server needs is in lib/bundled, including libGL and the X11
 libraries. It never opens a display, but tgfclient links them anyway and a
 headless machine usually does not have them.
