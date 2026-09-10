@@ -168,7 +168,7 @@ sd_module(legacymenu ${LM}
     mainscreens/splash.cpp mainscreens/mainmenu.cpp mainscreens/optionsmenu.cpp
     mainscreens/creditsmenu.cpp mainscreens/exitmenu.cpp mainscreens/asset.cpp
     mainscreens/assets.cpp mainscreens/confirmmenu.cpp mainscreens/dispatcher.cpp
-    mainscreens/downloadservers.cpp mainscreens/downloadsmenu.cpp mainscreens/entry.cpp
+    mainscreens/downloadservers.cpp mainscreens/downloadsmenu.cpp mainscreens/leaderboardmenu.cpp mainscreens/entry.cpp
     mainscreens/infomenu.cpp mainscreens/ptransfer.cpp mainscreens/repomenu.cpp
     mainscreens/sha256.cpp mainscreens/sink.cpp mainscreens/thumbnail.cpp
     mainscreens/transfer.cpp mainscreens/translatable.cpp mainscreens/unzip.cpp

@@ -118,7 +118,7 @@ fi
 LAPS="${LAPS:-3}"
 BOTS="${BOTS:-3}"
 MINPLAYERS="${MINPLAYERS:-1}"
-LOBBYWAIT="${LOBBYWAIT:-120}"
+LOBBYWAIT="${LOBBYWAIT:-10}"
 MAXRACETIME="${MAXRACETIME:-0}"
 FINISHWAIT="${FINISHWAIT:-45}"
 
@@ -216,7 +216,7 @@ That is the whole thing. It seeds ~/.speed-dreams-2 on first run, picks the next
 track in the rotation, and hosts one race on UDP 28500. Open that port.
 
     LAPS=5 BOTS=6 ./speed-dreams-server        # a longer race, bigger grid
-    LOBBYWAIT=60 ./speed-dreams-server         # a shorter wait before the start
+    LOBBYWAIT=120 ./speed-dreams-server        # a longer wait before the start
     MAXRACETIME=900 ./speed-dreams-server      # cut every race off at fifteen minutes
     ./speed-dreams-server --track jarama       # a specific track
     ./configure-race.py --list                 # what is installed
@@ -233,8 +233,9 @@ field. MAXRACETIME=900 puts a fifteen-minute cap back if you want one - it ends
 the race wherever the cars have got to and starts the next track, which is
 insurance against a field that never reaches the line at all.
 
-The lobby stays open for two minutes before every race, and clients see the
-countdown. That gap is what lets a player who has just finished get back in
+The lobby holds for ten seconds before every race, and clients see the
+countdown. It waits for a player however long that takes; the countdown is
+what happens once one is there. That gap is what lets a player who has just finished get back in
 before the next race is under way; while a race is running the server turns
 new players away rather than leaving them in a lobby it can no longer serve.
 
