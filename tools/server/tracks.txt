@@ -1,65 +1,79 @@
 # Tracks this server rotates through.
 #
-# A dedicated server has every track the game ships; a player has the one
-# bundled in their build plus whatever they have downloaded since. Racing a
-# track the players do not have leaves them unable to load it, so keep this
-# to what everyone is known to have.
+# One category/track per line; blank lines and # comments are ignored. Delete
+# the file to race every track the server has installed.
 #
-# Generated from a Quest install on 2026-09-10. One category/track per line;
-# blank lines and # comments are ignored. Delete the file to race everything.
+# Three things narrow the list, and all three matter:
 #
-# The gt2-* circuits are deliberately absent: they are prototypes. They ship
-# without a 3D model and only get one when the game's own track generator is
-# run over them during a build, so what exists on a server built from source is
-# not what exists on a headset - and racing one sends everybody to a track they
-# cannot load.
+# 1. The players have to have the track. A dedicated server has every track the
+#    game ships, a headset has the one bundled in its build plus whatever has
+#    been downloaded since - and racing a track a player does not have leaves
+#    them unable to load it.
+#
+# 2. The track has to ship shadow2.png, the map of vertical shadows cast onto
+#    cars. Without it nothing modulates the car materials and every car renders
+#    noticeably brighter and flatter. The log says so when it happens:
+#      "shadow2.png/rgb not found ; no shadow mapping on cars for this track"
+#
+# 3. The gt2-* circuits are prototypes. They ship without a 3D model and only
+#    get one when the track generator is run over them during a build, so a
+#    server built from source has them and a headset does not.
+#
+# What is left is the standard circuits, and there are ten of them.
 
 circuit/Imula
 circuit/aalborg
-circuit/ardennen-spa
-circuit/braga
 circuit/brondehach
 circuit/chemisay
 circuit/corkscrew
-circuit/dijon
 circuit/espie
-circuit/hidden-valley
-circuit/jarama
 circuit/karwada
-circuit/kurpfalzring
-circuit/melbourne
 circuit/migrants
-circuit/racepark
-circuit/racepark3
 circuit/ruudskogen
 circuit/sao-paulo
-dirt/dirt-1
-dirt/dirt-2
-dirt/garguree
-dirt/mixed-1
-dirt/sandpit
-dirt/woodenrally
-karting/bathfish
-karting/racearena
-road/alicante
-road/allondaz
-road/auriac
-road/charmey
-road/inuksuk
-road/lombaro
-road/longjour
-road/nordschleife
-road/ole-road-1
-road/peters
-road/pinabashi
-road/prenzlau
-road/salty
-road/street-1
-road/torino
-speedway/alamo
-speedway/arizona
-speedway/longpond
-speedway/manton
-speedway/mile
-speedway/milky-five
-speedway/newton
+
+# Also installed, also shadowed, but not standard circuits - rally, karting,
+# oval and open road. Uncomment any you want in the rotation.
+#
+#dirt/dirt-1
+#dirt/garguree
+#dirt/sandpit
+#karting/bathfish
+#road/alicante
+#road/allondaz
+#road/charmey
+#road/inuksuk
+#road/lombaro
+#road/nordschleife
+#road/ole-road-1
+#road/peters
+#road/pinabashi
+#road/prenzlau
+#road/salty
+#road/street-1
+#road/torino
+#speedway/alamo
+#speedway/arizona
+#speedway/longpond
+#speedway/manton
+#speedway/milky-five
+#speedway/newton
+
+# Installed but no shadow2.png, so the cars look too bright on these:
+#
+#circuit/ardennen-spa
+#circuit/braga
+#circuit/dijon
+#circuit/hidden-valley
+#circuit/jarama
+#circuit/kurpfalzring
+#circuit/melbourne
+#circuit/racepark
+#circuit/racepark3
+#dirt/dirt-2
+#dirt/mixed-1
+#dirt/woodenrally
+#karting/racearena
+#road/auriac
+#road/longjour
+#speedway/mile
