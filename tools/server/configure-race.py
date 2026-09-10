@@ -36,6 +36,10 @@ ROBOTS = ("simplix", "shadow", "usr", "axiom", "dandroid", "urbanski")
 
 ROTATION_STATE = ".track-rotation"
 
+# One "category/track" per line, blank lines and # comments ignored. Read from
+# beside this script unless --tracks names another.
+TRACK_LIST = "tracks.txt"
+
 
 def userdir():
     return os.environ.get("SD_USERDIR", os.path.expanduser("~/.speed-dreams-2"))
@@ -53,6 +57,33 @@ def datadir(explicit):
         if os.path.isdir(os.path.join(d, "tracks")):
             return d
     return ""
+
+
+def allowed_tracks(path):
+    """The rotation list, or None if there is not one.
+
+    A dedicated server has every track that ships with the game; a player has
+    the one bundled in their build plus whatever they have downloaded since.
+    Racing a track the players do not have does not degrade gracefully - the
+    client cannot load the model, and before this was written it did not even
+    survive the attempt - so the rotation is worth confining to what they are
+    known to have.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return None
+
+    wanted = set()
+
+    for line in lines:
+        line = line.split("#", 1)[0].strip()
+
+        if line:
+            wanted.add(line)
+
+    return wanted or None
 
 
 def installed_tracks(data):
@@ -178,6 +209,10 @@ def main():
                          "The server sends every robot's driver file to clients, "
                          "so they do not need the same robots installed")
     ap.add_argument("--datadir", help="the installed data directory")
+    ap.add_argument("--tracks",
+                    help="file listing the tracks to rotate through, one "
+                         "category/track per line; defaults to tracks.txt "
+                         "beside this script when there is one")
     ap.add_argument("--list", action="store_true",
                     help="list the installed tracks and robots, then exit")
     args = ap.parse_args()
@@ -188,6 +223,23 @@ def main():
 
     tracks = installed_tracks(data)
     bots = available_bots(root)
+
+    listfile = args.tracks or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), TRACK_LIST)
+    wanted = allowed_tracks(listfile)
+
+    if wanted and not args.list:
+        keep = [(c, t) for c, t in tracks if "%s/%s" % (c, t) in wanted]
+
+        if keep:
+            missing = len(wanted) - len(keep)
+            print("rotating through %d of %d installed tracks (%s)%s"
+                  % (len(keep), len(tracks), os.path.basename(listfile),
+                     ", %d listed but not installed" % missing if missing > 0 else ""))
+            tracks = keep
+        else:
+            print("none of the tracks in %s is installed; ignoring it"
+                  % listfile, file=sys.stderr)
 
     if args.list:
         print("tracks in %s:" % (data or "(not found)"))

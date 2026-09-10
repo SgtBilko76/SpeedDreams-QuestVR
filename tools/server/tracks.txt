@@ -1,0 +1,65 @@
+# Tracks this server rotates through.
+#
+# A dedicated server has every track the game ships; a player has the one
+# bundled in their build plus whatever they have downloaded since. Racing a
+# track the players do not have leaves them unable to load it, so keep this
+# to what everyone is known to have.
+#
+# Generated from a Quest install on 2026-09-10. One category/track per line;
+# blank lines and # comments are ignored. Delete the file to race everything.
+#
+# The gt2-* circuits are deliberately absent: they are prototypes. They ship
+# without a 3D model and only get one when the game's own track generator is
+# run over them during a build, so what exists on a server built from source is
+# not what exists on a headset - and racing one sends everybody to a track they
+# cannot load.
+
+circuit/Imula
+circuit/aalborg
+circuit/ardennen-spa
+circuit/braga
+circuit/brondehach
+circuit/chemisay
+circuit/corkscrew
+circuit/dijon
+circuit/espie
+circuit/hidden-valley
+circuit/jarama
+circuit/karwada
+circuit/kurpfalzring
+circuit/melbourne
+circuit/migrants
+circuit/racepark
+circuit/racepark3
+circuit/ruudskogen
+circuit/sao-paulo
+dirt/dirt-1
+dirt/dirt-2
+dirt/garguree
+dirt/mixed-1
+dirt/sandpit
+dirt/woodenrally
+karting/bathfish
+karting/racearena
+road/alicante
+road/allondaz
+road/auriac
+road/charmey
+road/inuksuk
+road/lombaro
+road/longjour
+road/nordschleife
+road/ole-road-1
+road/peters
+road/pinabashi
+road/prenzlau
+road/salty
+road/street-1
+road/torino
+speedway/alamo
+speedway/arizona
+speedway/longpond
+speedway/manton
+speedway/mile
+speedway/milky-five
+speedway/newton

@@ -197,6 +197,7 @@ chmod +x "$STAGE/speed-dreams-server"
 
 # --- the rest ----------------------------------------------------------------
 cp "$HERE/configure-race.py" "$STAGE/"
+cp "$HERE/tracks.txt" "$STAGE/" 2>/dev/null || true
 cp "$HERE/speed-dreams-server.service" "$STAGE/" 2>/dev/null || true
 chmod +x "$STAGE/configure-race.py"
 
@@ -219,6 +220,12 @@ track in the rotation, and hosts one race on UDP 28500. Open that port.
     MAXRACETIME=900 ./speed-dreams-server      # cut every race off at fifteen minutes
     ./speed-dreams-server --track jarama       # a specific track
     ./configure-race.py --list                 # what is installed
+
+tracks.txt is the rotation: one category/track per line. It exists because a
+dedicated server has every track the game ships while a player has the one
+bundled in their build plus whatever they have downloaded, and racing a track
+the players do not have leaves them unable to load it. Edit it as people
+download more; delete it to race everything installed.
 
 There is no ceiling on race length by default: a race ends when the first car
 completes the distance, plus the seconds in FINISHWAIT for the rest of the
