@@ -24,6 +24,8 @@
 # Run tools\stage_data.py first; this packs what is in stage\.
 
 param(
+    # Kept for the callers that pass it; it no longer skips packaging, only the
+    # waiting - gradle does not rebuild what has not changed.
     [switch]$SkipBuild,
     [switch]$WithAssets
 )
@@ -85,26 +87,31 @@ try {
 Write-Host ("  data   {0:N1} MB, {1:N0} files -> {2}" -f ((Get-Item $zipPath).Length / 1MB), $files, "gamedata.zip")
 
 # --- the APK -----------------------------------------------------------------
-if (-not $SkipBuild) {
-    Write-Host "  apk    building..."
-    Push-Location (Join-Path $root "android")
+# Always, even with -SkipBuild. The flag means "do not wait for the native code
+# to rebuild", and gradle's own up-to-date checks give you that for free - but
+# skipping assembleRelease altogether meant the freshly packed gamedata.zip was
+# never put into an APK, and the old one was copied to dist and installed. A
+# data-only change then appeared to ship and did nothing, which is a hard thing
+# to see from the outside: the build says it packed 4,349 files and the headset
+# carries on with the ones it had.
+Write-Host "  apk    building..."
+Push-Location (Join-Path $root "android")
+try {
+    # Gradle writes warnings to stderr, and under ErrorActionPreference=Stop
+    # PowerShell turns any native stderr line into a terminating error - so a
+    # harmless SDK version notice would read as a failed build. The exit code
+    # is the thing that actually says.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     try {
-        # Gradle writes warnings to stderr, and under ErrorActionPreference=Stop
-        # PowerShell turns any native stderr line into a terminating error - so a
-        # harmless SDK version notice would read as a failed build. The exit code
-        # is the thing that actually says.
-        $prev = $ErrorActionPreference
-        $ErrorActionPreference = "Continue"
-        try {
-            & .\gradlew.bat assembleRelease -PsdvrBundleData=true 2>&1 |
-                ForEach-Object { Write-Host "         $_" }
-        } finally {
-            $ErrorActionPreference = $prev
-        }
-        if ($LASTEXITCODE -ne 0) { throw "gradle failed ($LASTEXITCODE)" }
+        & .\gradlew.bat assembleRelease -PsdvrBundleData=true 2>&1 |
+            ForEach-Object { Write-Host "         $_" }
     } finally {
-        Pop-Location
+        $ErrorActionPreference = $prev
     }
+    if ($LASTEXITCODE -ne 0) { throw "gradle failed ($LASTEXITCODE)" }
+} finally {
+    Pop-Location
 }
 if (-not (Test-Path $apk)) { throw "no APK at $apk" }
 
