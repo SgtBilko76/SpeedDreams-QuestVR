@@ -5,6 +5,9 @@
 Speed Dreams VR 0.9.2-beta
 ========================
 
+[![Sponsor](https://img.shields.io/badge/Sponsor-SgtBilko76-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/SgtBilko76)
+
+
 Speed Dreams 2.4 as a standalone Meta Quest application: stereo rendering
 through OpenXR, a curved menu panel, and the full game in one APK.
 
