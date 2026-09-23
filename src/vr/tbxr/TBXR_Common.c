@@ -1701,7 +1701,14 @@ void TBXR_InitialiseOpenXR()
 	EglInitExtensions();
 
     //First, find out which HMD we are using
+    /* Nothing sets OPENXR_HMD on Android, so this is normally NULL and the real
+     * answer comes from the runtime name once the instance exists. Keep it an
+     * empty string rather than NULL: the checks below are strstr() calls, and a
+     * runtime that is neither Meta nor PICO would otherwise crash in them. */
     gAppState.OpenXRHMD = (char*)getenv("OPENXR_HMD");
+    if (gAppState.OpenXRHMD == NULL) {
+        gAppState.OpenXRHMD = "";
+    }
 
 	TBXR_LoadOpenXRLoader();
 	if (xrInitializeLoaderKHR != NULL) {

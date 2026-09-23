@@ -278,9 +278,16 @@ void TBXR_InitActions( void )
 
     //First try Pico Devices
     {
-        XrPath picoMixedRealityInteractionProfilePath;
-        CHECK_XRCMD(xrStringToPath(gAppState.Instance, "/interaction_profiles/pico/neo3_controller",
-                                   &picoMixedRealityInteractionProfilePath));
+        /* The Neo 3 path is what PICO's own OpenXR SDK used; PICO OS 5 runtimes
+         * name the controllers under bytedance instead, and a Pico 4 answers to
+         * neither of the other two. Suggest the same bindings for all of them and
+         * take the profile the runtime recognises - offering one it does not know
+         * is an error it simply reports, not a failure to start. */
+        static const char* const picoProfiles[] = {
+                "/interaction_profiles/pico/neo3_controller",
+                "/interaction_profiles/bytedance/pico_neo3_controller",
+                "/interaction_profiles/bytedance/pico4_controller",
+        };
 
         XrActionSuggestedBinding bindings[128];
         int currBinding = 0;
@@ -326,13 +333,26 @@ void TBXR_InitActions( void )
         bindings[currBinding++] = ActionSuggestedBinding(aimAction, aimPath[SIDE_LEFT]);
         bindings[currBinding++] = ActionSuggestedBinding(aimAction, aimPath[SIDE_RIGHT]);
 
-        XrInteractionProfileSuggestedBinding suggestedBindings = {};
-        suggestedBindings.type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING;
-        suggestedBindings.interactionProfile = picoMixedRealityInteractionProfilePath;
-        suggestedBindings.suggestedBindings = bindings;
-        suggestedBindings.countSuggestedBindings = currBinding;
-        suggestedBindings.next = NULL;
-        result = xrSuggestInteractionProfileBindings(gAppState.Instance, &suggestedBindings);
+        result = XR_ERROR_PATH_UNSUPPORTED;
+        for (size_t p = 0; p < sizeof(picoProfiles) / sizeof(picoProfiles[0]); p++) {
+            XrPath picoInteractionProfilePath;
+            if (xrStringToPath(gAppState.Instance, picoProfiles[p],
+                               &picoInteractionProfilePath) != XR_SUCCESS) {
+                continue;
+            }
+
+            XrInteractionProfileSuggestedBinding suggestedBindings = {};
+            suggestedBindings.type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING;
+            suggestedBindings.interactionProfile = picoInteractionProfilePath;
+            suggestedBindings.suggestedBindings = bindings;
+            suggestedBindings.countSuggestedBindings = currBinding;
+            suggestedBindings.next = NULL;
+            if (xrSuggestInteractionProfileBindings(gAppState.Instance,
+                                                    &suggestedBindings) == XR_SUCCESS) {
+                ALOGV("Suggested bindings for %s", picoProfiles[p]);
+                result = XR_SUCCESS;
+            }
+        }
     }
 
     if (result != XR_SUCCESS)
