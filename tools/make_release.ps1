@@ -127,10 +127,15 @@ $readme = @"
 Speed Dreams VR $version
 ========================
 
-Speed Dreams 2.4 as a standalone Meta Quest application: stereo rendering
+Speed Dreams 2.4 as a standalone headset application: stereo rendering
 through OpenXR, a curved menu panel, and the full game in one APK.
 
-Quest 2, Quest 3, Quest Pro. About 500 MB free on the headset.
+Quest 2, Quest 3, Quest Pro, Pico 4 and Pico Neo 3. About 500 MB free on the
+headset.
+
+One APK covers all of them. The game asks the headset's OpenXR runtime what it
+supports and configures itself from the answer, so there is no separate Pico
+download and nothing to choose at install time.
 
 
 Installing
@@ -141,6 +146,10 @@ Sideload it, however you normally do - SideQuest, or:
     adb install -r $name.apk
 
 The game appears in the headset's library under Unknown Sources.
+
+On a Pico the adb line is the same; SideQuest is a Quest tool, so use adb or
+whichever sideloader you already use. Developer mode has to be on for adb to
+see the headset, on either make.
 
 The first launch takes an extra half minute or so: the game data is unpacked
 out of the APK to /sdcard/SpeedDreamsVR, where it stays. Later versions reuse
@@ -169,6 +178,10 @@ Controls
 If the menu panel is not in front of you, hold Y for a second - it is anchored
 to the room, not to your head, so it stays where it was when you last moved.
 
+Pico controllers carry the same buttons in the same places, so the table above
+reads the same on a Pico 4. The driving controls are a virtual joystick either
+way, so anything that does not suit you can be rebound in Options -> Players.
+
 
 Settings
 --------
@@ -188,5 +201,14 @@ Known limits
 
 - Practice and qualifying run one car at a time. That is how the game works,
   not a fault of the port: use Quick Race or a championship to race opponents.
+
+- The Pico build has not been run on a Pico. It is built and wired up - the
+  manifest, the controller bindings and the runtime detection are all in - but
+  every test so far has been on a Quest 3, so treat the first Pico launch as
+  unproven. If it misbehaves, the useful line is
+
+      adb logcat -s SpeedDreamsVR:V TBXR:V
+
+  which prints the runtime it found and the controller profile it bound.
 "@
 Set-Content -Path (Join-Path $dist "README.txt") -Value $readme -Encoding UTF8

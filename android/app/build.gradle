@@ -23,8 +23,8 @@ android {
         applicationId 'com.speeddreamsvr'
         minSdk 29
         targetSdk 32
-        versionCode 4
-        versionName '0.9.2-beta'
+        versionCode 5
+        versionName '0.9.3-beta'
 
         externalNativeBuild {
             cmake {
